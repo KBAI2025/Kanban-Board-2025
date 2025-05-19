@@ -1,0 +1,40 @@
+.kanban-column.add-column {
+  background-color: rgba(9, 30, 66, 0.04);
+  border: 2px dashed #c1c7d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 280px;
+  margin: 0 10px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.kanban-column.add-column:hover {
+  background-color: rgba(9, 30, 66, 0.08);
+  border-color: #5e6c84;
+}
+
+.add-column-button {
+  background: none;
+  border: none;
+  color: #5e6c84;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 12px 20px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-column-button:hover {
+  color: #172b4d;
+  background-color: rgba(9, 30, 66, 0.08);
+}

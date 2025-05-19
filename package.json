@@ -1,0 +1,79 @@
+{
+    "name": "react-starter-kit",
+    "version": "1.0.1",
+    "description": "Template React project",
+    "private": true,
+    "main": "src/index.js",
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "webpack serve --mode development --open",
+        "build": "webpack --mode production"
+    },
+    "bugs": "https://github.com/CDCgov/react-starter-kit/issues",
+    "homepage": "https://github.com/CDCgov/react-starter-kit",
+    "devDependencies": {
+        "@babel/core": "^7.27.1",
+        "@babel/plugin-proposal-class-properties": "^7.18.6",
+        "@babel/plugin-transform-runtime": "^7.27.1",
+        "@babel/preset-env": "^7.27.2",
+        "@babel/preset-react": "^7.27.1",
+        "@babel/runtime": "^7.22.0",
+        "@types/react": "^16.14.25",
+        "@types/react-dom": "^16.9.15",
+        "@typescript-eslint/eslint-plugin": "^4.11.0",
+        "@typescript-eslint/parser": "^4.11.0",
+        "babel-loader": "^10.0.0",
+        "core-js": "^3.42.0",
+        "css-loader": "^4.3.0",
+        "eslint": "^7.16.0",
+        "eslint-config-prettier": "^8.5.0",
+        "eslint-config-react-app": "^6.0.0",
+        "eslint-plugin-import": "^2.26.0",
+        "eslint-plugin-jsx-a11y": "^6.5.1",
+        "eslint-plugin-react": "^7.29.4",
+        "file-loader": "^6.1.0",
+        "html-webpack-plugin": "^5.5.0",
+        "husky": "^4.3.0",
+        "lint-staged": "^10.4.0",
+        "mini-svg-data-uri": "^1.4.4",
+        "prop-types": "^15.8.1",
+        "sass": "^1.51.0",
+        "sass-loader": "^10.2.1",
+        "style-loader": "^1.0.0",
+        "ts-loader": "^8.4.0",
+        "typescript": "^4.6.3",
+        "url-loader": "^4.1.1",
+        "webpack": "^5.99.8",
+        "webpack-cli": "^6.0.1",
+        "webpack-dev-server": "^5.2.1"
+    },
+    "dependencies": {
+        "@babel/runtime-corejs3": "^7.27.1",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/react-fontawesome": "^0.2.2",
+        "axios": "^1.9.0",
+        "bootstrap": "^4.3.1",
+        "date-fns": "^4.1.0",
+        "html-react-parser": "^0.14.0",
+        "react": "^16.11.0",
+        "react-app-polyfill": "^1.0.4",
+        "react-dnd": "^14.0.5",
+        "react-dnd-html5-backend": "^14.0.1",
+        "react-dnd-touch-backend": "^16.0.1",
+        "react-dom": "^16.11.0",
+        "react-icons": "^5.5.0",
+        "regenerator-runtime": "^0.14.1"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "engines": {
+        "node": ">= 12.0.0",
+        "npm": ">= 6.0.0"
+    },
+    "lint-staged": {
+        "src/**/**.{js,jsx,ts,tsx}": "eslint src/**/*.{js,jsx,ts,tsx}"
+    }
+}
