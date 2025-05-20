@@ -1,1 +1,1 @@
-# Kanban Board with Darkmode + Overview the data in a list view
+# Kanban Board with Darkmode + Overview the Data in a List-View
