@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const dotenv = require('dotenv').config({ path: path.join(__dirname, '.env') });
 const svgToMiniDataURI = require('mini-svg-data-uri');
 
 // Development Configuration
@@ -37,6 +39,9 @@ module.exports = (env, { mode }) => ({
 			template: './src/index.html',
 			filename: 'index.html',
 			chunks: ['app'],
+		}),
+		new webpack.DefinePlugin({
+			'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL || 'http://localhost:5002')
 		}),
 	],
 	stats: 'minimal',

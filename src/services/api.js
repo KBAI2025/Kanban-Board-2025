@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 // Use the environment variable or fallback to localhost
-const API_URL = window.REACT_APP_API_URL 
-  ? `${window.REACT_APP_API_URL}/api` 
+const API_URL = process.env.REACT_APP_API_URL 
+  ? `${process.env.REACT_APP_API_URL}/api` 
   : 'http://localhost:5002/api';
 
 console.log('API URL:', API_URL); // For debugging

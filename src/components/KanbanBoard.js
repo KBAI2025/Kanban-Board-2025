@@ -190,7 +190,7 @@ const defaultBoard = {
   _id: 'default-board',
   name: 'Default Board',
   columns: [
-    { id: 'todo', title: 'To Do', tasks: [] },
+    { id: 'todo', title: 'Todo', tasks: [] },
     { id: 'in-progress', title: 'In Progress', tasks: [] },
     { id: 'review', title: 'Review', tasks: [] },
     { id: 'done', title: 'Done', tasks: [] }
@@ -217,28 +217,46 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
   // Update column order when board changes
   useEffect(() => {
     if (board?.columns) {
-      const newOrder = board.columns.map(col => col.id);
-      setColumnOrder(prevOrder => {
-        // Preserve the order of existing columns, append any new ones at the end
-        const ordered = prevOrder.filter(id => newOrder.includes(id));
-        const newColumns = newOrder.filter(id => !prevOrder.includes(id));
-        return [...ordered, ...newColumns];
-      });
+      // Set the columns in the desired order
+      setColumnOrder(['todo', 'in-progress', 'review', 'done']);
     }
   }, [board]);
 
   // Extract unique assignees when board data changes
   useEffect(() => {
+    console.log('Board data changed, extracting assignees...', {
+      hasBoard: !!board,
+      hasColumns: board?.columns?.length > 0
+    });
+
     if (board?.columns) {
       const assignees = new Set();
-      board.columns.forEach(column => {
-        column.tasks.forEach(task => {
-          if (task.assignee?.name) {
-            assignees.add(task.assignee.name);
-          }
+      board.columns.forEach((column, colIndex) => {
+        console.log(`Column ${colIndex} (${column.id}):`, {
+          name: column.name,
+          taskCount: column.tasks?.length || 0,
+          tasks: column.tasks?.map(t => ({
+            id: t.id,
+            title: t.title,
+            assignee: t.assignee?.name || 'none'
+          }))
         });
+
+        if (column.tasks && Array.isArray(column.tasks)) {
+          column.tasks.forEach(task => {
+            if (task.assignee?.name) {
+              assignees.add(task.assignee.name);
+            }
+          });
+        }
       });
-      setUniqueAssignees(Array.from(assignees).sort());
+      
+      const sortedAssignees = Array.from(assignees).sort();
+      console.log('Updating unique assignees:', sortedAssignees);
+      setUniqueAssignees(sortedAssignees);
+    } else {
+      console.log('No columns found in board or board is undefined');
+      setUniqueAssignees([]);
     }
   }, [board]);
 
@@ -800,7 +818,17 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
       
       // Optimistically update the UI
       column.tasks[cardIndex] = cardUpdate;
-      setBoard(updatedBoard);
+      
+      // Update the board state based on whether it's controlled by props or local state
+      if (propBoard) {
+        // If board is controlled by props, call onBoardUpdate
+        if (onBoardUpdate) {
+          onBoardUpdate(updatedBoard);
+        }
+      } else {
+        // Otherwise update local state
+        setInternalBoard(updatedBoard);
+      }
       
       // Close the edit modal
       setEditingCard(null);
@@ -883,6 +911,21 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
     }
   }, [board, editingColumnId, getBoard, setInternalBoard, setError, updateCard, columnOrder, onBoardUpdate]);
 
+  // Sort columns by their order before rendering
+  const sortedColumns = useMemo(() => {
+    if (!board?.columns) return [];
+    
+    return board.columns.sort((a, b) => {
+      const aIndex = columnOrder.indexOf(a.id);
+      const bIndex = columnOrder.indexOf(b.id);
+      
+      if (aIndex === -1) return 1; // Columns not in order go to end
+      if (bIndex === -1) return -1;
+      
+      return aIndex - bIndex;
+    });
+  }, [board?.columns, columnOrder]);
+
   const renderColumn = (column) => {
     if (!column || !column.tasks) {
       console.warn('Invalid column data:', column);
@@ -946,6 +989,16 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
       <div><strong>Board ID:</strong> {board._id}</div>
     </div>
   );
+
+  // Debug logs before rendering Filters
+  console.log('Rendering KanbanBoard with filters:', {
+    searchText,
+    selectedAssignee,
+    selectedPriority,
+    uniqueAssignees,
+    hasColumns: !!board?.columns,
+    hasTasks: board?.columns?.some(col => col.tasks?.length > 0)
+  });
 
   return (
     <div className="kanban-container">

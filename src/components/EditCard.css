@@ -1,10 +1,11 @@
+/* Light Mode - Default Styles */
 .edit-card-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.5) !important;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -15,29 +16,43 @@
 }
 
 .edit-card {
-  background: #1a1a1f;
+  background: #ffffff !important;
   border-radius: 8px;
-  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.2);
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  padding: 24px;
-  color: #f0f0f0;
-  border: 1px solid #2d2d35;
+  padding: 24px 28px; /* Consistent padding on all sides */
+  color: #333333 !important;
+  border: 1px solid #e0e0e0;
+  box-sizing: border-box; /* Ensure padding is included in width */
+}
+
+/* Ensure light mode styles are applied when not in dark mode */
+html:not(.dark) .edit-card-overlay,
+html:not([data-theme='dark']) .edit-card-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+html:not(.dark) .edit-card,
+html:not([data-theme='dark']) .edit-card {
+  background: #ffffff !important;
+  color: #333333 !important;
+  border-color: #e0e0e0 !important;
 }
 
 /* Dark mode styles */
-.dark .edit-card-overlay {
-  background-color: rgba(0, 0, 0, 0.85);
+html.dark .edit-card-overlay {
+  background-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-.dark .edit-card {
-  background: #1e1e24;
-  border-color: #3a3a40;
-  color: #f0f0f0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+html.dark .edit-card {
+  background: #1e1e24 !important;
+  border-color: #3a3a40 !important;
+  color: #f0f0f0 !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
 }
 
 .close-button {
@@ -48,22 +63,22 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #a0a0a8;
+  color: #6b7280;
   padding: 5px 10px;
   border-radius: 4px;
   transition: all 0.2s ease;
 }
 
 .close-button:hover {
-  background-color: #2d2d35;
-  color: #ffffff;
+  background-color: #f0f0f0;
+  color: #333333;
 }
 
-.dark .close-button {
+html.dark .close-button {
   color: #6b7280;
 }
 
-.dark .close-button:hover {
+html.dark .close-button:hover {
   background-color: #3a3a40;
   color: #ffffff;
 }
@@ -77,26 +92,38 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
+html.dark .edit-card-header {
+  border-bottom-color: #3a3a40;
+}
+
 .edit-card-header h3 {
   margin: 0 0 8px 0;
-  color: var(--text-color, #172b4d);
+  color: #172b4d;
   font-size: 20px;
   font-weight: 600;
 }
 
+html.dark .edit-card-header h3 {
+  color: #ffffff;
+}
+
 .creation-timestamp {
-  color: var(--text-muted, #5e6c84);
+  color: #5e6c84;
   font-size: 13px;
   font-style: italic;
   margin-top: 4px;
 }
 
-.dark .creation-timestamp {
-  color: #888;
+html.dark .creation-timestamp {
+  color: #a0a0a8;
 }
 
 .form-group {
   margin-bottom: 16px;
+  max-width: 516px; /* Set maximum width */
+  width: 100%; /* Ensure it takes full width up to max-width */
+  margin: 0 auto 16px; /* Center the form group */
+  padding: 0 4px; /* Reduced horizontal padding */
 }
 
 .form-group label {
@@ -104,7 +131,7 @@
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #a0a0a8;
+  color: #5e6c84;
 }
 
 .form-group input[type="text"],
@@ -112,11 +139,11 @@
 .form-group select {
   width: 100%;
   padding: 10px 12px;
-  border: 1px solid #3a3a40;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   font-size: 14px;
-  color: #f0f0f0;
-  background: #24242a;
+  color: #333333;
+  background: #ffffff;
   transition: all 0.2s ease;
 }
 
@@ -126,29 +153,28 @@
   outline: none;
   border-color: #4c9aff;
   box-shadow: 0 0 0 2px rgba(76, 154, 255, 0.2);
-  background: #2d2d35;
+  background: #ffffff;
 }
 
 /* Dark mode form elements */
-.dark .form-group label {
+html.dark .form-group label {
   color: #a0a0a8;
 }
 
-.dark .form-group input[type="text"],
-.dark .form-group textarea,
-.dark .form-group select {
-  background: #24242a;
+html.dark .form-group input[type="text"],
+html.dark .form-group textarea,
+html.dark .form-group select {
   border-color: #3a3a40;
   color: #f0f0f0;
+  background: #24242a;
 }
 
-.dark .form-group input[type="text"]:focus,
-.dark .form-group textarea:focus,
-.dark .form-group select:focus {
-  border-color: #4c9aff;
+html.dark .form-group input[type="text"]:focus,
+html.dark .form-group textarea:focus,
+html.dark .form-group select:focus {
   background: #2d2d35;
-  box-shadow: 0 0 0 2px rgba(76, 154, 255, 0.3);
 }
+
 
 .form-group textarea {
   min-height: 80px;
@@ -159,11 +185,16 @@
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
+  max-width: 516px; /* Match max-width with form groups */
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .form-row .form-group {
   flex: 1;
   margin-bottom: 0;
+  max-width: none; /* Allow form groups in rows to be flexible */
 }
 
 .priority-options {
@@ -178,28 +209,28 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #a0a0a8;
+  color: #5e6c84;
   cursor: pointer;
   padding: 6px 12px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  border: 1px solid #3a3a40;
+  border: 1px solid #e0e0e0;
   margin-right: 6px;
-  background: #24242a;
+  background: #f8f9fa;
 }
 
 .priority-option:hover {
-  background: #2d2d35;
-  border-color: #4a5568;
+  background: #f0f0f0;
+  border-color: #d1d5db;
 }
 
-.dark .priority-option {
+html.dark .priority-option {
   background: #24242a;
   border-color: #3a3a40;
   color: #e0e0e0;
 }
 
-.dark .priority-option:hover {
+html.dark .priority-option:hover {
   background: #2d2d35;
   border-color: #4a5568;
 }
@@ -229,13 +260,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #3a3a40;
+  max-width: 516px; /* Match max-width with form groups */
+  width: 100%;
+  margin: 24px auto 0; /* Center the actions */
+  padding: 16px 4px 0; /* Consistent padding */
+  border-top: 1px solid #e0e0e0; /* Lighter border for light mode */
 }
 
-.dark .form-actions {
-  border-top-color: #3a3a40;
+html.dark .form-actions {
+  border-top-color: #3a3a40; /* Darker border for dark mode */
 }
 
 .left-actions {

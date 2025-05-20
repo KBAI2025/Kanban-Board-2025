@@ -1,0 +1,314 @@
+.edit-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+  opacity: 1 !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.edit-popup {
+  background: #ffffff !important;
+  border-radius: 12px;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+  padding: 28px 32px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #333333 !important;
+  line-height: 1.5;
+}
+
+.dark .edit-popup {
+  background: #1e1e24 !important;
+  color: #f0f0f0 !important;
+  border: 1px solid #3a3a40;
+}
+
+.edit-popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5em;
+  padding-bottom: 1em;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dark .edit-popup-header {
+  background: #23232a;
+  border-bottom: 1px solid #3a3a40;
+}
+
+.edit-popup-header h3 {
+  color: #1a1a1a;
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.125rem;
+}
+
+.edit-popup-content {
+  margin-bottom: 2em;
+  display: grid;
+  gap: 1.5em;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.edit-field label {
+  color: #4a4a4a;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.edit-field input,
+.edit-field textarea,
+.edit-field select {
+  width: 100%;
+  padding: 0.75em;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  color: #2d3748;
+  transition: border-color 0.2s ease;
+  background-color: #fff;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.edit-field input:focus,
+.edit-field textarea:focus,
+.edit-field select:focus {
+  outline: none;
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.edit-field textarea {
+  height: 150px;
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+/* Priority Badge Styles */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  min-width: 80px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: capitalize;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.priority-badge[data-priority="critical"] {
+  background-color: #fce4ec;
+  color: #c2185b;
+  border: 1px solid #f8bbd0;
+}
+
+.priority-badge[data-priority="high"] {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+}
+
+.priority-badge[data-priority="medium"] {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffecb3;
+}
+
+.priority-badge[data-priority="low"] {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+/* Assignee Avatar Styles */
+.assignee-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+  margin-right: 8px;
+}
+
+.assignee-avatar:hover {
+  background-color: #cbd5e1;
+  cursor: pointer;
+}
+
+/* Dark mode styles for priority badge and assignee */
+.dark .priority-badge[data-priority="critical"] {
+  background-color: #5c2b29;
+  color: #ff8a80;
+  border-color: #7d3c4a;
+}
+
+.dark .priority-badge[data-priority="high"] {
+  background-color: #5c2b29;
+  color: #ff8a80;
+  border-color: #7d3c4a;
+}
+
+.dark .priority-badge[data-priority="medium"] {
+  background-color: #4a3a00;
+  color: #ffd54f;
+  border-color: #6d5c1f;
+}
+
+.dark .priority-badge[data-priority="low"] {
+  background-color: #1b3a1e;
+  color: #81c784;
+  border-color: #2e5c33;
+}
+
+.dark .assignee-avatar {
+  background-color: #3a3a40;
+  color: #e2e8f0;
+}
+
+.dark .assignee-avatar:hover {
+  background-color: #4a5568;
+}
+
+.edit-popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1em;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5em;
+  padding-bottom: 1em;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s ease;
+  padding: 8px;
+  line-height: 1;
+  border-radius: 4px;
+}
+
+.close-btn:hover {
+  color: #1a1a1a;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.list-header {
+  background: var(--header-bg);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px;
+  display: flex;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.column-order-container {
+  display: none; /* Hide the duplicate column order */
+}
+
+.save-btn {
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
+}
+
+.save-btn:hover {
+  background-color: #3182ce;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode styles */
+.dark .edit-popup {
+  background: #1a202c;
+  border-color: #4a5568;
+}
+
+.dark .edit-field input,
+.dark .edit-field textarea,
+.dark .edit-field select {
+  background: #2d3748;
+  border-color: #4a5568;
+  color: #e2e8f0;
+}
+
+.dark .edit-field input:focus,
+.dark .edit-field textarea:focus,
+.dark .edit-field select:focus {
+  border-color: #4299e1;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.dark .save-btn {
+  background-color: #4299e1;
+}
+
+.dark .save-btn:hover {
+  background-color: #3182ce;
+}
+
+/* Ensure the modal content is scrollable on small screens */
+@media (max-width: 768px) {
+  .edit-popup {
+    width: 95%;
+    padding: 16px;
+  }
+}

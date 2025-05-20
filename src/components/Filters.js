@@ -6,13 +6,18 @@ import './Filters.css';
 const Filters = ({
   searchText,
   setSearchText,
-  selectedAssignee,
-  setSelectedAssignee,
-  selectedPriority,
-  setSelectedPriority,
+  selectedAssignee = 'all',
+  setSelectedAssignee = () => {},
+  selectedPriority = 'all',
+  setSelectedPriority = () => {},
   uniqueAssignees = [],
   className = ''
 }) => {
+  console.log('Filters props:', { 
+    selectedAssignee, 
+    selectedPriority, 
+    uniqueAssignees 
+  });
   // Sort assignees alphabetically
   const sortedAssignees = React.useMemo(() => {
     return [...uniqueAssignees].sort((a, b) => a.localeCompare(b));
@@ -60,34 +65,36 @@ const Filters = ({
 
       <div className="filter-group">
         <div className="filter-select-wrapper">
-          <div className="filter-label">
-            <FontAwesomeIcon icon={faUser} className="filter-icon" />
-            <span>Assignee</span>
-          </div>
           <select
-            className="filter-select"
-            value={selectedAssignee}
-            onChange={(e) => setSelectedAssignee(e.target.value)}
+            className="filter-select with-icon"
+            value={selectedAssignee || 'all'}
+            onChange={(e) => {
+              console.log('Setting assignee to:', e.target.value);
+              setSelectedAssignee(e.target.value);
+            }}
             aria-label="Filter by assignee"
           >
             <option value="all">All Assignees</option>
-            {sortedAssignees.map((assignee) => (
-              <option key={assignee} value={assignee}>
-                {assignee}
-              </option>
-            ))}
+            {Array.isArray(sortedAssignees) && sortedAssignees.length > 0 ? (
+              sortedAssignees.map((assignee) => (
+                <option key={assignee} value={assignee}>
+                  {assignee}
+                </option>
+              ))
+            ) : (
+              <option value="no-assignees" disabled>No assignees available</option>
+            )}
           </select>
         </div>
 
         <div className="filter-select-wrapper">
-          <div className="filter-label">
-            <FontAwesomeIcon icon={faFilter} className="filter-icon" />
-            <span>Priority</span>
-          </div>
           <select
-            className="filter-select"
-            value={selectedPriority}
-            onChange={(e) => setSelectedPriority(e.target.value)}
+            className="filter-select with-icon"
+            value={selectedPriority || 'all'}
+            onChange={(e) => {
+              console.log('Setting priority to:', e.target.value);
+              setSelectedPriority(e.target.value);
+            }}
             aria-label="Filter by priority"
           >
             <option value="all">All Priorities</option>
