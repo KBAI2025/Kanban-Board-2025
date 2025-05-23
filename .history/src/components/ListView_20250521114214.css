@@ -136,12 +136,16 @@
 }
 
 .priority-badge[data-priority="high"] {
-  background-color: #ffd99f;
-  color: #ff9800;
-  border-color: #ff9800;
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
 }
 
-
+.priority-badge[data-priority="medium"] {
+  background-color: #fff8e1;
+  color: #ff8f00;
+  border: 1px solid #ffecb3;
+}
 
 .priority-badge[data-priority="low"] {
   background-color: #e8f5e9;
@@ -178,15 +182,15 @@
 }
 
 .dark .priority-badge[data-priority="high"] {
-  background-color: #ffd99f;
-  color: #ff9800;
-  border-color: #ff9800;
+  background-color: #5c2b29;
+  color: #ff8a80;
+  border-color: #7d3c4a;
 }
 
 .dark .priority-badge[data-priority="medium"] {
-  background-color: rgb(188 225 255);
-    color: #2196f3;
-    border: 1px solid rgb(33, 150, 243);
+  background-color: #4a3a00;
+  color: #ffd54f;
+  border-color: #6d5c1f;
 }
 
 .dark .priority-badge[data-priority="low"] {

@@ -5,91 +5,45 @@ import { faSort, faSortUp, faSortDown, faSearch, faEdit } from '@fortawesome/fre
 import './ListView.css';
 
 const EditTaskPopup = ({ task, onClose, onSave, board }) => {
-  const [formData, setFormData] = useState({
-    title: task.title || '',
-    description: task.description || '',
-    priority: task.priority || 'medium',
-    epicLabel: task.epicLabel || '',
-    assignee: task.assignee?.id || ''
-  });
-  const [error, setError] = useState('');
+  const [editedTask, setEditedTask] = useState({ ...task });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
-    }
-    // Find the assignee object by id if possible
-    let selectedAssignee = null;
-    if (board && board.columns) {
-      for (const col of board.columns) {
-        for (const t of col.tasks) {
-          if (t.assignee && t.assignee.id === formData.assignee) {
-            selectedAssignee = t.assignee;
-            break;
-          }
-        }
-      }
-    }
-    const updatedTask = {
-      ...task,
-      title: formData.title.trim(),
-      description: formData.description.trim(),
-      priority: formData.priority,
-      epicLabel: formData.epicLabel.trim(),
-      assignee: selectedAssignee || task.assignee || null
-    };
-    onSave(updatedTask);
+  const handleSave = () => {
+    onSave(editedTask);
     onClose();
   };
 
   return (
-    <div className="edit-card-overlay" onClick={onClose}>
-      <div className="edit-card" onClick={e => e.stopPropagation()}>
-        <button className="close-button" onClick={onClose}>×</button>
-        <div className="edit-card-header">
-          <div>
-            <h3>Edit Card</h3>
-            {task.createdAt && (
-              <div className="creation-timestamp">
-                Created: {/* You can format date if needed */}
-                {task.createdAt}
-              </div>
-            )}
-          </div>
+    <div className="edit-popup-overlay">
+      <div className="edit-popup">
+        <div className="edit-popup-header">
+          <h3>Edit Task</h3>
+          <button onClick={onClose} className="close-btn">&times;</button>
         </div>
-        {error && <div className="error-message">{error}</div>}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Title</label>
+        <div className="edit-popup-content">
+          <div className="edit-field">
+            <label>Title:</label>
             <input
-              name="title"
               type="text"
-              value={formData.title}
-              onChange={handleChange}
-              required
+              value={editedTask.title || ''}
+              onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
             />
           </div>
-          <div className="form-group">
-            <label>Description</label>
+          <div className="edit-field">
+            <label>Description:</label>
             <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
+              value={editedTask.description || ''}
+              onChange={(e) => setEditedTask({ ...editedTask, description: e.target.value })}
             />
           </div>
-          <div className="form-group">
-            <label>Priority</label>
+          <div className="edit-field">
+            <label>Priority:</label>
+            <div className="priority-badge" data-priority={editedTask.priority || 'medium'}>
+              {editedTask.priority ? editedTask.priority.charAt(0).toUpperCase() + editedTask.priority.slice(1) : 'Medium'}
+            </div>
             <select
-              name="priority"
-              value={formData.priority}
-              onChange={handleChange}
+              value={editedTask.priority || 'medium'}
+              onChange={(e) => setEditedTask({ ...editedTask, priority: e.target.value })}
+              className="priority-select"
             >
               <option value="critical">Critical</option>
               <option value="high">High</option>
@@ -97,21 +51,38 @@ const EditTaskPopup = ({ task, onClose, onSave, board }) => {
               <option value="low">Low</option>
             </select>
           </div>
-          <div className="form-group">
-            <label>Assignee</label>
+          <div className="edit-field">
+            <label>Assignee:</label>
+            <div className="assignee-avatar" title={editedTask.assignee?.name || 'Unassigned'}>
+              {editedTask.assignee?.name ? 
+                editedTask.assignee.name.split(' ').map(n => n[0]).join('') : 
+                'UA'}
+            </div>
             <input
-              name="assignee"
               type="text"
-              value={formData.assignee}
-              onChange={handleChange}
-              placeholder="Enter assignee ID or name"
+              value={editedTask.assignee?.name || ''}
+              onChange={(e) => setEditedTask({ ...editedTask, assignee: { name: e.target.value } })}
+              placeholder="Enter assignee name"
             />
           </div>
-          <div className="form-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
-            <button type="submit" className="save-btn">Save</button>
+          <div className="edit-field">
+            <label>Status:</label>
+            <select
+              value={editedTask.columnName || ''}
+              onChange={(e) => setEditedTask({ ...editedTask, columnName: e.target.value })}
+            >
+              {board?.columns?.map(column => (
+                <option key={column.id} value={column.title}>
+                  {column.title}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
+        </div>
+        <div className="edit-popup-footer">
+          <button onClick={onClose}>Cancel</button>
+          <button onClick={handleSave} className="save-btn">Save</button>
+        </div>
       </div>
     </div>
   );
@@ -319,35 +290,17 @@ const ListView = ({ board, onBoardUpdate }) => {
     });
 
     return [...processedTasks].sort((a, b) => {
-      // Determine sort order based on sortConfig
-      const { key, direction } = sortConfig;
-      let comparison = 0;
-
-      // Handle different sort keys
-      if (key === 'priority') {
-        const aPriority = getPriorityIndex(a.originalPriority || '');
-        const bPriority = getPriorityIndex(b.originalPriority || '');
-        comparison = aPriority - bPriority;
-      } else if (key === 'title') {
-        const aTitle = a.title?.toLowerCase() || '';
-        const bTitle = b.title?.toLowerCase() || '';
-        comparison = aTitle.localeCompare(bTitle);
-      } else if (key === 'epicLabel') {
-        const aEpic = a.epicLabel?.toLowerCase() || '';
-        const bEpic = b.epicLabel?.toLowerCase() || '';
-        comparison = aEpic.localeCompare(bEpic);
-      } else if (key === 'assignee') {
-        const aAssignee = a.assigneeName?.toLowerCase() || '';
-        const bAssignee = b.assigneeName?.toLowerCase() || '';
-        comparison = aAssignee.localeCompare(bAssignee);
-      } else if (key === 'columnName') {
-        const aStatus = a.columnName?.toLowerCase() || '';
-        const bStatus = b.columnName?.toLowerCase() || '';
-        comparison = aStatus.localeCompare(bStatus);
-      }
-
-      // Apply sort direction
-      return direction === 'asc' ? comparison : -comparison;
+      // Sort only by priority (ascending), independent of column/status
+      const aPriority = getPriorityIndex(a.priority);
+      const bPriority = getPriorityIndex(b.priority);
+      if (aPriority < bPriority) return -1;
+      if (aPriority > bPriority) return 1;
+      // If priorities are equal, sort by title
+      const aTitle = a.title?.toLowerCase() || '';
+      const bTitle = b.title?.toLowerCase() || '';
+      if (aTitle < bTitle) return -1;
+      if (aTitle > bTitle) return 1;
+      return 0;
     });
   }, [filteredTasks, sortConfig]);
 
@@ -385,9 +338,6 @@ const ListView = ({ board, onBoardUpdate }) => {
         </div>
         
         <div className="list-header">
-          <div className="list-col ticket-number">
-            Ticket #
-          </div>
           <div className="list-col title sortable" onClick={() => requestSort('title')}>
             Title
             {getSortIcon('title')}
@@ -420,10 +370,8 @@ const ListView = ({ board, onBoardUpdate }) => {
                 data-priority={task.priority || 'medium'}
                 onClick={() => handleEditTask(task)}
               >
-                <div className="list-col ticket-number">
-                  {task.ticketNumber || `TKT-${task.id.substring(0, 6).toUpperCase()}`}
-                </div>
                 <div className="list-col title">
+                  <span className="ticket-number">{task.ticketNumber || `TKT-${task.id.substring(0, 6).toUpperCase()}`}</span>
                   <h4>{task.title}</h4>
                 </div>
                 <div className="list-col epic">

@@ -136,9 +136,9 @@
 }
 
 .priority-badge[data-priority="high"] {
-  background-color: #ffd99f;
-  color: #ff9800;
-  border-color: #ff9800;
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
 }
 
 
@@ -178,9 +178,9 @@
 }
 
 .dark .priority-badge[data-priority="high"] {
-  background-color: #ffd99f;
-  color: #ff9800;
-  border-color: #ff9800;
+  background-color: #5c2b29;
+  color: #ff8a80;
+  border-color: #7d3c4a;
 }
 
 .dark .priority-badge[data-priority="medium"] {
