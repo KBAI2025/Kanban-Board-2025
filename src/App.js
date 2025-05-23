@@ -6,6 +6,7 @@ import { faTh, faList, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { getBoard } from './services/api';
 import { ThemeProvider } from './context/ThemeContext';
 import ThemeToggle from './components/ThemeToggle';
+import ChatButton from './components/ChatButton';
 import './components/KanbanBoard.css';
 
 function App() {
@@ -107,6 +108,7 @@ function App() {
             />
           )}
         </main>
+        <ChatButton />
       </div>
     </ThemeProvider>
   );

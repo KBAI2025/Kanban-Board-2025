@@ -236,8 +236,10 @@ router.post('/:boardId/columns/:columnId/cards', async (req, res) => {
     }
 
     // Create a new card
+    const cardId = new mongoose.Types.ObjectId().toString();
     const newCard = {
-      id: new mongoose.Types.ObjectId().toString(),
+      id: cardId,
+      ticketNumber: `PT-${cardId.substring(18, 21).toUpperCase()}`,
       title,
       description,
       priority,

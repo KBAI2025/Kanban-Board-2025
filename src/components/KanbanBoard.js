@@ -46,7 +46,7 @@ const Card = ({ card, index, columnId, onEdit }) => {
             )}
           </div>
           <div className="footer-right">
-            <span className="ticket-number">{card.ticketNumber}</span>
+            <span className="ticket-number">{card.ticketNumber || `PT-${String(card.id).substring(18, 21).toUpperCase()}`}</span>
             <div className="assignee">
               {card.assignee ? (
                 <>
@@ -1031,6 +1031,14 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
       {editingCard && (
         <div className="modal-overlay">
           <div className="modal-content">
+            <button 
+              className="modal-close" 
+              onClick={() => {
+                setEditingCard(null);
+                setEditingColumnId('');
+              }}
+              aria-label="Close modal"
+            />
             <EditCard
               boardId={board._id}
               columnId={editingColumnId}

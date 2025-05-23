@@ -98,6 +98,21 @@ const EditTaskPopup = ({ task, onClose, onSave, board }) => {
             </select>
           </div>
           <div className="form-group">
+            <label>Epic Label</label>
+            <select
+              name="epicLabel"
+              value={formData.epicLabel || 'None'}
+              onChange={handleChange}
+              className="epic-label-select"
+            >
+              <option value="None">None</option>
+              <option value="Backend">Backend</option>
+              <option value="Frontend">Frontend</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Accounting">Accounting</option>
+            </select>
+          </div>
+          <div className="form-group">
             <label>Assignee</label>
             <input
               name="assignee"
@@ -421,7 +436,7 @@ const ListView = ({ board, onBoardUpdate }) => {
                 onClick={() => handleEditTask(task)}
               >
                 <div className="list-col ticket-number">
-                  {task.ticketNumber || `TKT-${task.id.substring(0, 6).toUpperCase()}`}
+                  {task.ticketNumber || `PT-${String(task.id).substring(18, 21).toUpperCase()}`}
                 </div>
                 <div className="list-col title">
                   <h4>{task.title}</h4>
@@ -446,7 +461,7 @@ const ListView = ({ board, onBoardUpdate }) => {
                       {task.assignee.avatar || task.assignee.name.split(' ').map(n => n[0]).join('')}
                     </div>
                   ) : (
-                    <span className="assignee-unassigned" title="Unassigned">
+                    <span className="assignee-avatar unassigned" title="Unassigned">
                       UA
                     </span>
                   )}

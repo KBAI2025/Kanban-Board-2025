@@ -160,9 +160,20 @@
   background-color: #e2e8f0;
   color: #4a5568;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.68rem;
   line-height: 1;
   margin-right: 8px;
+  white-space: nowrap;
+  overflow: visible;
+  text-align: center;
+}
+
+.assignee-avatar.unassigned {
+  background-color: #e2e8f0;
+  color: #4a5568;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .assignee-avatar:hover {
@@ -243,6 +254,24 @@
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Dark mode styles for list header */
+.dark .list-header {
+  background: #1a1a1f;
+  color: #a0aec0;
+  border-bottom-color: #2d3748;
+}
+
+.dark .list-header .list-col {
+  color: #a0aec0;
+}
+
+/* Ensure list header columns have proper contrast in dark mode */
+.dark .list-header .list-col.priority,
+.dark .list-header .list-col.assignee,
+.dark .list-header .list-col.status {
+  color: #a0aec0;
 }
 
 .column-order-container {

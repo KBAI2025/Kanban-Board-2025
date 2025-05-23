@@ -37,17 +37,41 @@
   color: #5e6c84;
 }
 
+.required-field::after {
+  content: ' *';
+  color: #e53e3e;
+}
+
 .add-card input[type="text"],
 .add-card textarea,
 .add-card select {
   width: 100%;
   padding: 8px 12px;
+  padding-right: 36px;
   border: 1px solid #dfe1e6;
   border-radius: 4px;
   font-size: 14px;
   color: #172b4d;
   background: #fafbfc;
   transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235e6c84'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* Hide arrow for textareas */
+.add-card textarea {
+  background-image: none;
+  padding-right: 12px;
+}
+
+/* Style for select elements specifically */
+.add-card select {
+  cursor: pointer;
 }
 
 .add-card input[type="text"]:focus,
@@ -107,6 +131,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: 1px solid #BBB;
 }
 
 .form-actions button.primary {
@@ -133,10 +158,43 @@
 }
 
 .error-message {
-  color: #eb5a46;
-  font-size: 12px;
-  margin-bottom: 12px;
-  padding: 6px 12px;
-  background: #ffebee;
-  border-radius: 4px;
+  color: #e53e3e;
+  background-color: #fff5f5;
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 14px;
+  border-left: 3px solid #e53e3e;
+}
+
+/* Error states for form inputs */
+.add-card input.error,
+.add-card select.error {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 1px #e53e3e !important;
+}
+
+.add-card input.error:focus,
+.add-card select.error:focus {
+  border-color: #e53e3e !important;
+  box-shadow: 0 0 0 2px rgba(229, 62, 62, 0.2) !important;
+}
+
+/* Dark mode styles */
+html.dark .error-message {
+  background-color: #2d1a1a;
+  color: #fc8181;
+  border-left-color: #fc8181;
+}
+
+html.dark .add-card input.error,
+html.dark .add-card select.error {
+  border-color: #fc8181 !important;
+  box-shadow: 0 0 0 1px #fc8181 !important;
+}
+
+html.dark .add-card input.error:focus,
+html.dark .add-card select.error:focus {
+  border-color: #fc8181 !important;
+  box-shadow: 0 0 0 2px rgba(252, 129, 129, 0.2) !important;
 }

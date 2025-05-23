@@ -1,0 +1,162 @@
+/* AddCard.css */
+.add-card {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.add-card-button {
+  width: 100%;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed #c1c7d0;
+  border-radius: 4px;
+  color: #5e6c84;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.add-card-button:hover {
+  background: rgba(9, 30, 66, 0.04);
+  border-color: #5e6c84;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e6c84;
+}
+
+.add-card input[type="text"],
+.add-card textarea,
+.add-card select {
+  width: 100%;
+  padding: 8px 12px;
+  padding-right: 36px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #172b4d;
+  background: #fafbfc;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235e6c84'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px;
+}
+
+/* Hide arrow for textareas */
+.add-card textarea {
+  background-image: none;
+  padding-right: 12px;
+}
+
+/* Style for select elements specifically */
+.add-card select {
+  cursor: pointer;
+}
+
+.add-card input[type="text"]:focus,
+.add-card textarea:focus,
+.add-card select:focus {
+  outline: none;
+  border-color: #4c9aff;
+  box-shadow: 0 0 0 2px rgba(0, 121, 191, 0.2);
+  background: #fff;
+}
+
+.add-card textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.priority-options {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.priority-option {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: #5e6c84;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.priority-option:hover {
+  background: #ebecf0;
+}
+
+.priority-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.form-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #BBB;
+}
+
+.form-actions button.primary {
+  background: #0079bf;
+  color: white;
+}
+
+.form-actions button.primary:hover {
+  background: #026aa7;
+}
+
+.form-actions button.primary:disabled {
+  background: #b3bac5;
+  cursor: not-allowed;
+}
+
+.form-actions button.secondary {
+  background: #ebecf0;
+  color: #5e6c84;
+}
+
+.form-actions button.secondary:hover {
+  background: #dfe1e6;
+}
+
+.error-message {
+  color: #eb5a46;
+  font-size: 12px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  background: #ffebee;
+  border-radius: 4px;
+}

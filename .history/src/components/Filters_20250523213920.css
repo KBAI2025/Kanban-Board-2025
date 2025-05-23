@@ -1,0 +1,493 @@
+/* Filters Container */
+.filters-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: nowrap;
+  padding: 4px 0;
+}
+
+/* Kanban-specific styles */
+.kanban-filters .filters-container {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  margin: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  height: 40px;
+  min-height: 40px;
+  background-color: var(--bg-color, #ffffff);
+
+  gap: 8px;
+
+}
+
+.kanban-filters .filters-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.kanban-filters .filters-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.kanban-filters .filters-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.kanban-filters .filters-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.kanban-filters .search-filter-group {
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-right: 6px;
+  position: relative;
+}
+
+.kanban-filters .filter-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  height: 32px;
+  padding: 2px 0;
+}
+
+.kanban-filters .filter-select-wrapper {
+  min-width: 140px;
+  margin: 0 4px;
+  flex-shrink: 0;
+  position: relative;
+  height: 28px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.kanban-filters .filter-select {
+  height: 28px;
+  line-height: 26px;
+  font-size: 12px;
+  padding: 0 24px 0 12px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color, #e1e4e8);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.kanban-filters .filter-select:hover {
+  border-color: var(--primary-light, #cce0ff);
+  box-shadow: 0 0 0 1px var(--primary-light, #cce0ff);
+}
+
+.kanban-filters .filter-select:focus {
+  border-color: var(--primary-color, #4a90e2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  outline: none;
+}
+
+/* Dark mode styles for kanban */
+.dark .kanban-filters .filter-select {
+  background-color: var(--input-bg, #2d2d35);
+  border-color: var(--border-color, #3a3a40);
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .kanban-filters .filter-select:hover {
+  border-color: var(--primary-light, #5a8bd6);
+}
+
+.dark .kanban-filters .filter-select:focus {
+  border-color: var(--primary-color, #6ea8fe);
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.25);
+}
+
+.kanban-filters .clear-filters {
+  margin: 0 4px 0 0;
+  padding: 0 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary-color, #4a90e2);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kanban-filters .clear-filters:hover {
+  background-color: var(--hover-color, #f0f4f8);
+  border-color: var(--border-color, #e1e4e8);
+  color: var(--primary-dark, #2c6ecb);
+}
+
+.kanban-filters .clear-filters:hover {
+  background-color: var(--hover-color, #e9ecef);
+}
+
+/* Search Box */
+.search-filter-group {
+  width: 100%;
+  max-width: 500px;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: var(--input-bg, #f8f9fa);
+  border-radius: 4px;
+  border: 1px solid var(--border-color, #e1e4e8);
+  transition: all 0.15s ease;
+  height: 28px;
+  font-size: 12px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary-color, #4a90e2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-muted, #6c757d);
+  font-size: 11px;
+  opacity: 0.8;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.search-box:focus-within .search-icon {
+  color: var(--primary-color, #4a90e2);
+  opacity: 1;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0 8px 0 30px;
+  font-size: 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-color, #333);
+  height: 100%;
+  box-sizing: border-box;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  background-color: var(--input-focus-bg, #ffffff);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted, #6c757d);
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted, #6c757d);
+  opacity: 1;
+  font-weight: normal;
+}
+
+.search-input:focus {
+  outline: none;
+}
+
+.kanban-filters .clear-search {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--text-muted, #6c757d);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  transition: all 0.15s ease;
+  width: 16px;
+  height: 16px;
+  line-height: 1;
+}
+
+.kanban-filters .clear-search:hover {
+  opacity: 1;
+  color: var(--text-color, #333);
+  background-color: var(--hover-bg, #f0f0f0);
+}
+
+.clear-search:hover {
+  color: var(--text-color, #333);
+  background-color: var(--hover-bg, #f0f0f0);
+}
+
+/* Filter Group */
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-select-wrapper {
+  position: relative;
+  min-width: 180px;
+  height: 32px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.filter-select-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--text-muted, #6c757d);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #6c757d);
+  margin-bottom: 4px;
+  margin-left: 2px;
+}
+
+.filter-icon {
+  font-size: 12px;
+  color: var(--text-muted, #6c757d);
+}
+
+.filter-select {
+  width: 100%;
+  height: 100%;
+  padding: 0 24px 0 12px;
+  border: 1px solid var(--border-color, #e1e4e8);
+  background-color: var(--input-bg, #f8f9fa);
+  color: var(--text-color, #333);
+  font-size: 12px;
+  font-weight: 500;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 28px;
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.filter-select:hover {
+  border-color: var(--primary-light, #cce0ff);
+  box-shadow: 0 0 0 1px var(--primary-light, #cce0ff);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #4a90e2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Ensure the select box has a white background */
+.filter-select {
+  background-color: #ffffff;
+}
+
+/* Dark mode styles */
+.dark .filter-select {
+  background-color: var(--input-bg, #2d2d35);
+  border-color: var(--border-color, #3a3a40);
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .filter-select:hover {
+  border-color: var(--primary-light, #5a8bd6);
+}
+
+.dark .filter-select:focus {
+  border-color: var(--primary-color, #6ea8fe);
+  box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.25);
+}
+
+.filter-select.with-icon {
+  padding-left: 22px;
+  padding-right: 16px;
+  background-position: left 10px center;
+  background-size: 14px 14px;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+/* Add person icon to assignee filter */
+.filter-select-wrapper:first-child .filter-select.with-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
+  background-size: 14px 14px;
+  background-position: left -14px center;
+  padding-right: 16px; /* Reduced padding since we don't need space for the arrow */
+}
+
+/* Ensure text is visible in dark mode */
+.dark .filter-select,
+.dark .search-input {
+  color: var(--text-color, #f8f9fa);
+}
+
+.dark .filter-select option {
+  background-color: var(--bg-color, #1a1a1a);
+  color: var(--text-color, #f8f9fa);
+}
+
+/* Make scrollbar thinner on WebKit browsers */
+.kanban-filters .filters-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.kanban-filters .filters-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-color, #e1e4e8);
+  border-radius: 2px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #4a90e2);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* Clear Filters Button */
+.clear-filters {
+  margin-left: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--primary-color, #4a90e2);
+  background-color: transparent;
+  border: 1px solid var(--border-color, #e1e4e8);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-filters:hover {
+  background-color: var(--hover-bg, #f0f0f0);
+  border-color: var(--border-hover, #d1d5da);
+}
+
+/* Dark Mode Styles */
+.dark .filter-select,
+.dark .search-box,
+.dark .clear-filters {
+  background-color: var(--input-bg, #2d2d35);
+  border-color: var(--border-color, #3a3a40);
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .search-input {
+  color: var(--text-color, #e0e0e0);
+}
+
+.dark .search-input::placeholder {
+  color: var(--text-muted, #6b7280);
+}
+
+.dark .filter-select {
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Dark mode for person icon in assignee filter */
+.dark .filter-select-wrapper:first-child .filter-select.with-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0aec0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'%3E%3C/path%3E%3Ccircle cx='12' cy='7' r='4'%3E%3C/circle%3E%3C/svg%3E");
+  background-size: 12px 12px;
+  background-position: left  88px center;
+  padding-right: 16px; /* Reduced padding since we don't need space for the arrow */
+}
+
+.dark .clear-filters:hover {
+  background-color: var(--hover-bg, #3a3a40);
+  border-color: var(--border-hover, #4a4a50);
+}
+
+/* Responsive Styles */
+@media (max-width: 992px) {
+  .filters-container {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .search-filter-group {
+    min-width: 100% !important;
+    max-width: 100% !important;
+    margin-right: 0 !important;
+  }
+  
+  .filter-group {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .filter-select-wrapper {
+    flex: 1;
+    min-width: 120px;
+  }
+  
+  .clear-filters {
+    margin-left: 0;
+    flex: 1;
+    min-width: 100%;
+    margin-top: 4px;
+  }
+}

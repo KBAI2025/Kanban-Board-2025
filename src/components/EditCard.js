@@ -34,6 +34,8 @@ const EditCard = ({
   });
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  // Track if the card initially had an epic label (for UI purposes)
+  const hadEpicLabel = !!card.epicLabel;
 
   // Use ref to track mounted state
   const isMounted = React.useRef(true);
@@ -66,15 +68,37 @@ const EditCard = ({
     }));
   };
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const validateForm = () => {
+    const errors = {};
+    
+    // Title validation
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required';
+    }
+    
+    // Epic Label validation - always required
+    if (!formData.epicLabel || formData.epicLabel === 'None') {
+      errors.epicLabel = 'Please select an Epic Label';
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0; // Returns true if no errors
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('handleSubmit called with formData:', formData);
     
-    if (!formData.title.trim()) {
-      console.log('Validation failed: Title is required');
-      setError('Title is required');
-      return;
+    // Reset previous errors
+    setError('');
+    
+    // Validate form
+    if (!validateForm()) {
+      return; // Don't proceed if validation fails
     }
+    
+    console.log('handleSubmit called with formData:', formData);
 
     // Create a cleanup flag for this operation
     let isSubscribed = true;
@@ -198,21 +222,71 @@ const EditCard = ({
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Title</label>
+            <label className="required-field">Title</label>
             <input
               type="text"
               name="title"
               value={formData.title}
-              onChange={handleChange}
-              placeholder="Card title"
+              onChange={(e) => {
+                handleChange(e);
+                // Clear error when user starts typing
+                if (fieldErrors.title) {
+                  setFieldErrors(prev => ({
+                    ...prev,
+                    title: ''
+                  }));
+                }
+              }}
+              placeholder="Enter card title"
               disabled={isSaving}
               autoFocus
-              required
+              className={`${fieldErrors.title ? 'error' : ''}`}
             />
+            {fieldErrors.title && (
+              <div className="field-error-message">{fieldErrors.title}</div>
+            )}
           </div>
           
           <div className="form-group">
-            <label>Description</label>
+            <label className="required-field">Epic Label</label>
+            <select
+              name="epicLabel"
+              value={formData.epicLabel || ''}
+              onChange={(e) => {
+                handleChange(e);
+                // Clear error when user makes a selection
+                if (fieldErrors.epicLabel) {
+                  setFieldErrors(prev => ({
+                    ...prev,
+                    epicLabel: ''
+                  }));
+                }
+              }}
+              disabled={isSaving}
+              className={`epic-label-select ${fieldErrors.epicLabel ? 'error' : ''}`}
+              required={!hadEpicLabel}
+            >
+              <option value="">Select an Epic Label</option>
+              <option value="Backend">Backend</option>
+              <option value="Frontend">Frontend</option>
+              <option value="UI/UX">UI/UX</option>
+              <option value="Bug">Bug</option>
+              <option value="Feature">Feature</option>
+            </select>
+            {fieldErrors.epicLabel && (
+              <div className="field-error-message">
+                {fieldErrors.epicLabel}{!hadEpicLabel ? ' (required for new cards)' : ''}
+              </div>
+            )}
+            {!hadEpicLabel && !fieldErrors.epicLabel && (
+              <div className="field-hint-message">Please select an Epic Label (required)</div>
+            )}
+          </div>
+          
+          <div className="form-group">
+            <label className="label">
+              Description
+            </label>
             <textarea
               name="description"
               value={formData.description}
@@ -263,18 +337,6 @@ const EditCard = ({
                 ))}
               </div>
             </div>
-          </div>
-          
-          <div className="form-group">
-            <label>Epic Label</label>
-            <input
-              type="text"
-              name="epicLabel"
-              value={formData.epicLabel}
-              onChange={handleChange}
-              placeholder="e.g., UI/UX, Backend, Bug"
-              disabled={isSaving}
-            />
           </div>
           
           <div className="form-actions">

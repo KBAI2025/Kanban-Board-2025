@@ -38,8 +38,18 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Reset previous errors
+    setError('');
+    
+    // Validate required fields
     if (!formData.title.trim()) {
       setError('Title is required');
+      return;
+    }
+    
+    if (!formData.epicLabel.trim()) {
+      setError('Epic Label is required');
       return;
     }
 
@@ -61,7 +71,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
       // Pass the updated board to the parent component
       onCardAdded(updatedBoard);
       
-      // Reset the form
+      // Reset the form with default values
       setFormData({
         title: '',
         description: '',
@@ -69,6 +79,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         priority: 'medium',
         epicLabel: ''
       });
+      setError('');  // Clear any remaining errors
       setShowForm(false);
     } catch (err) {
       console.error('Error adding card:', err);
@@ -91,16 +102,26 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
 
   return (
     <div className="add-card">
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="error-message" style={{
+        color: '#e53e3e',
+        backgroundColor: '#fff5f5',
+        padding: '10px 15px',
+        borderRadius: '6px',
+        marginBottom: '15px',
+        fontSize: '14px',
+        borderLeft: '3px solid #e53e3e'
+      }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
+          <label className="required-field">Card Title</label>
           <input
             type="text"
             name="title"
-            placeholder="Card title"
+            placeholder="Enter card title"
             value={formData.title}
             onChange={handleChange}
             disabled={isAdding}
+            className={error && !formData.title.trim() ? 'error' : ''}
             required
           />
         </div>
@@ -154,15 +175,22 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         </div>
         
         <div className="form-group">
-          <label>Epic Label</label>
-          <input
-            type="text"
+          <label className="required-field">Epic Label</label>
+          <select
             name="epicLabel"
-            placeholder="e.g., UI/UX, Backend, Bug"
             value={formData.epicLabel}
             onChange={handleChange}
             disabled={isAdding}
-          />
+            className={error && !formData.epicLabel.trim() ? 'error' : ''}
+            required
+          >
+            <option value="">Select an Epic Label</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="Bug">Bug</option>
+            <option value="Feature">Feature</option>
+          </select>
         </div>
         
         <div className="form-actions">
