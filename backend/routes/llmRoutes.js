@@ -21,8 +21,28 @@ router.post('/query', async (req, res) => {
     const { db } = await connectToDatabase();
     let results = [];
 
-    // Search for relevant tasks based on the query
-    if (query) {
+    // Check for assignee query pattern
+    const assigneeMatch = query.match(/tasks?\s+(?:assigned to|for)\s+(.+?)(?:\?|$)/i);
+    
+    if (assigneeMatch) {
+      const assigneeName = assigneeMatch[1].trim();
+      // Search for tasks assigned to the specified person
+      const tasks = await db.collection('tasks')
+        .find({ 
+          assignee: { $regex: new RegExp(assigneeName, 'i') },
+          ...(context.boardId && { boardId: context.boardId })
+        })
+        .limit(20)
+        .toArray();
+      
+      results = tasks.map(task => ({
+        type: 'task',
+        data: task,
+        source: 'tasks',
+        score: 1.0
+      }));
+    } else if (query) {
+      // General text search for other queries
       const tasks = await db.collection('tasks')
         .find({ 
           $text: { $search: query },
@@ -37,7 +57,7 @@ router.post('/query', async (req, res) => {
         type: 'task',
         data: task,
         source: 'tasks',
-        score: 1.0 // Simple relevance score
+        score: 0.9 // Slightly lower score for general search
       })));
     }
 

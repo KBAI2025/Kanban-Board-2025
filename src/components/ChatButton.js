@@ -111,8 +111,8 @@ const WelcomeMessage = ({ onExampleClick }) => (
       <p>Try asking:</p>
       <ul>
         <li>
-          <button onClick={() => onExampleClick('What tasks are assigned to me?')}>
-            What tasks are assigned to me?
+          <button onClick={() => onExampleClick('What tasks are assigned to Bob Johnson?')}>
+            What tasks are assigned to Bob Johnson?
           </button>
         </li>
         <li>
@@ -132,7 +132,7 @@ const WelcomeMessage = ({ onExampleClick }) => (
 
 const ChatButton = () => {
   // State management
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

@@ -90,16 +90,59 @@ ollamaApi.interceptors.response.use(
 function formatMongoDBDataForPrompt(data) {
   if (!data || !data.length) return 'No relevant data found in the database.';
   
+  // Check if this is an assignee query
+  const isAssigneeQuery = data.some(item => 
+    item.type === 'task' && item.data.assignee
+  );
+  
+  if (isAssigneeQuery) {
+    // Group tasks by assignee
+    const tasksByAssignee = data.reduce((acc, item) => {
+      if (item.type === 'task' && item.data.assignee) {
+        const assignee = item.data.assignee;
+        if (!acc[assignee]) {
+          acc[assignee] = [];
+        }
+        acc[assignee].push(item.data);
+      }
+      return acc;
+    }, {});
+    
+    // Format the response for assignee query
+    return Object.entries(tasksByAssignee).map(([assignee, tasks]) => {
+      const taskList = tasks.map(task => {
+        const status = task.column?.name ? ` (${task.column.name})` : '';
+        const dueDate = task.dueDate ? ` - Due: ${new Date(task.dueDate).toLocaleDateString()}` : '';
+        return `- ${task.title}${status}${dueDate}`;
+      }).join('\n');
+      
+      return `## ${tasks.length} ${tasks.length === 1 ? 'Task' : 'Tasks'} assigned to ${assignee}\n\n${taskList}`;
+    }).join('\n\n');
+  }
+  
+  // Default formatting for other queries
   const formattedData = data.map(item => {
     if (item.type === 'task') {
       const task = item.data;
-      const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
-      const assignee = task.assignee ? `\n👤 **Assignee:** ${task.assignee}` : '';
-      const labels = task.labels?.length ? `\n🏷️ **Labels:** ${task.labels.join(', ')}` : '';
-      const priority = task.priority ? `\n⚠️ **Priority:** ${task.priority}` : '';
-      const description = task.description ? `\n\n${task.description}` : '';
+      const status = task.column?.name ? `\n\nStatus: ${task.column.name}` : '';
       
-      return `### 📌 ${task.title} (${task.column?.name || 'No Status'})\n📅 **Due:** ${dueDate}${priority}${assignee}${labels}${description}`;
+      // Choose emoji based on task type or first word of title
+      let emoji = '📌'; // Default emoji
+      const title = task.title || '';
+      
+      if (title.toLowerCase().includes('chatbot') || title.toLowerCase().includes('chat bot')) {
+        emoji = '🤖';
+      } else if (title.toLowerCase().includes('margin') || title.toLowerCase().includes('calculator')) {
+        emoji = '🔧';
+      } else if (title.toLowerCase().includes('bug') || title.toLowerCase().includes('fix')) {
+        emoji = '🐛';
+      } else if (title.toLowerCase().includes('feature')) {
+        emoji = '✨';
+      } else if (title.toLowerCase().includes('meeting')) {
+        emoji = '📅';
+      }
+      
+      return `${emoji} **${task.title}**${status}`;
     } else if (item.type === 'board') {
       const board = item.data;
       const columns = board.columns?.map(col => `- ${col.name} (${col.tasks?.length || 0} tasks)`).join('\n') || 'No columns';
