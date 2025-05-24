@@ -50,7 +50,7 @@ const Card = ({ card, index, columnId, onEdit }) => {
             <div className="assignee">
               {card.assignee ? (
                 <>
-                  <span className="assignee-avatar">
+                  <span className="assignee-avatar" title={card.assignee.name}>
                     {card.assignee.name
                       .split(' ')
                       .map((n) => n[0])

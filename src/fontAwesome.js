@@ -1,5 +1,25 @@
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTh, faList } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faTh, 
+  faList, 
+  faRobot,
+  faPaperPlane,
+  faTimes,
+  faMinus,
+  faExpand,
+  faEllipsisH,
+  faInfoCircle
+} from '@fortawesome/free-solid-svg-icons';
 
-// Add all icons you want to use to the library
-library.add(faTh, faList);
+// Add all icons to the library
+library.add(
+  faTh,
+  faList,
+  faRobot,
+  faPaperPlane,
+  faTimes,
+  faMinus,
+  faExpand,
+  faEllipsisH,
+  faInfoCircle
+);

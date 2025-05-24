@@ -867,9 +867,21 @@ header {
 
 /* Removed the diagonal line over unassigned avatars */
 
-.assignee-avatar.unassigned:hover {
+.assignee-avatar.unassigned {
+  background-color: #e2e8f0 !important;
+  color: #4a5568 !important;
+  font-size: 0.7rem !important;
+  font-weight: 600;
+  text-transform: uppercase;
   transform: none;
   box-shadow: 0 0 0 2px rgba(9, 30, 66, 0.08);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: visible;
+  text-align: center;
+  content: 'UA';
 }
 
 .assignee-avatar:hover,

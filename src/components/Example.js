@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import Context from '../context';
+import ConfigContext from '../contexts/ConfigContext';
 import testImage from '../assets/test-image.png';
 import SecondComponent from './Second.tsx';
 
@@ -16,7 +16,7 @@ const Example = ({ backgroundColor }) => {
 	 * Here, we're pulling a bit of state from the global context instead
 	 * of passing it down. To see how this is passed down, check App.js.
 	 */
-	const { pageTitle, setPageTitle } = useContext(Context);
+	const { pageTitle, setPageTitle } = useContext(ConfigContext);
 
 	/**
 	 * You can set inline styles by declaring a regular
