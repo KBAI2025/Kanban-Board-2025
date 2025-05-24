@@ -1,14 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import ReactMarkdown from 'react-markdown';
 import { 
   faRobot, 
   faPaperPlane, 
   faTimes, 
-  faMinus, 
-  faExpand, 
   faEllipsisH 
 } from '@fortawesome/free-solid-svg-icons';
+import DnaSpinner from './DnaSpinner';
 import { useBoard } from '../contexts/BoardContext';
 import { sendMessageToOllama, checkOllamaStatus } from '../services/ollamaService';
 import './ChatButton.css';
@@ -135,9 +133,9 @@ const WelcomeMessage = ({ onExampleClick }) => (
 const ChatButton = () => {
   // State management
   const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [ollamaStatus, setOllamaStatus] = useState({ 
     isRunning: false, 
     models: [],
@@ -200,432 +198,262 @@ const ChatButton = () => {
       setOllamaStatus(prev => ({
         ...prev,
         isRunning,
-        models,
-        isLoading: false,
-        error: isRunning ? null : error
+        models: models || [],
+        error: error || null,
+        isLoading: false
       }));
       
-      if (!isRunning) {
-        const errorMsg = error || 'Ollama is not running. Please make sure Ollama is installed and running on your system.';
-        addMessage(
-          `⚠️ ${errorMsg}\n\n` +
-          'You can download Ollama from: https://ollama.ai/download',
-          'error'
-        );
-        return { isRunning: false, hasModel: false };
-      }
-      
-      const modelName = 'deepseek-coder:6.7b';
-      const hasModel = models.some(model => 
-        model.includes('deepseek-coder') || 
-        model.includes('deepseek') ||
-        model.includes('coder')
-      );
-      
-      if (!hasModel) {
-        const installMsg = `ℹ️ The ${modelName} model is not installed.\n` +
-          'Please run this command in your terminal to install it:\n\n' +
-          '```bash\nollama pull deepseek-coder:6.7b\n```';
-        
-        addMessage(
-          installMsg,
-          'bot'
-        );
-        return { isRunning: true, hasModel: false };
-      }
-      
-      // If we get here, everything is working
-      return { isRunning: true, hasModel: true };
-      
+      return { isRunning, models, error };
     } catch (error) {
       console.error('Error checking Ollama status:', error);
-      
       setOllamaStatus(prev => ({
         ...prev,
         isRunning: false,
-        isLoading: false,
-        error: error.message
+        error: error.message,
+        isLoading: false
       }));
-      
-      addMessage(
-        `❌ Error connecting to Ollama: ${error.message || 'Unknown error'}\n\n` +
-        'Please make sure Ollama is installed and running.\n' +
-        'You can download it from: https://ollama.ai/download',
-        'error'
-      );
-      
-      return { isRunning: false, hasModel: false };
+      return { isRunning: false, models: [], error: error.message };
     }
-  }, [addMessage]);
-  
-  // Check Ollama status when chat is opened
-  useEffect(() => {
-    if (isOpen && !isMinimized) {
-      checkOllamaConnection();
-    }
-  }, [isOpen, isMinimized, checkOllamaConnection]);
-
-  // Toggle chat window
-  const handleToggleChat = useCallback(() => {
-    const newIsOpen = !isOpen;
-    setIsOpen(newIsOpen);
-    
-    if (newIsOpen) {
-      // Focus input when chat is opened
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen]);
-  
-  // Toggle minimize/restore chat window
-  const handleMinimize = useCallback(() => {
-    setIsMinimized(prev => !prev);
-    
-    // If we're un-minimizing, focus the input after animation
-    if (isMinimized) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300);
-    }
-  }, [isMinimized]);
+  }, []);
   
   // Handle form submission
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     const userInput = inputValue.trim();
-    if (!userInput) return;
+    if (!userInput || isLoading) return;
     
-    // Add user message to chat
-    const userMessage = addMessage(userInput, 'user');
-    setInputValue('');
-    
-    // Reset textarea height
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-    }
-    
-    // Check if Ollama is running before processing
-    const { isRunning } = await checkOllamaConnection();
-    if (!isRunning) {
-      return; // Error message already shown by checkOllamaConnection
-    }
-    
-    // Show typing indicator
-    setIsTyping(true);
-    const botMessage = addMessage('', 'bot', true);
+    setIsLoading(true);
     
     try {
-      // Prepare board data for context (only include necessary fields to reduce token usage)
-      const boardContext = board ? {
-        id: board._id,
-        name: board.name,
-        columns: board.columns?.map(column => ({
-          id: column._id,
-          title: column.title,
-          tasks: column.tasks?.map(task => ({
-            id: task._id || task.id,
-            title: task.title,
-            description: task.description,
-            priority: task.priority,
-            status: column.title, // Add status from column
-            epicLabel: task.epicLabel,
-            assignee: task.assignee ? {
-              id: task.assignee.id || task.assignee._id,
-              name: task.assignee.name
-            } : null,
-            dueDate: task.dueDate,
-            createdAt: task.createdAt
+      // Add user message to chat
+      const userMessage = addMessage(userInput, 'user');
+      setInputValue('');
+      
+      // Reset textarea height
+      if (inputRef.current) {
+        inputRef.current.style.height = 'auto';
+      }
+      
+      // Check if Ollama is running before processing
+      const { isRunning } = await checkOllamaConnection();
+      if (!isRunning) {
+        addMessage('Ollama is not running. Please start Ollama to use the AI assistant.', 'error');
+        return;
+      }
+      
+      // Show typing indicator
+      setIsTyping(true);
+      const botMessage = addMessage('', 'bot', true);
+      
+      try {
+        // Prepare board data for context
+        const boardContext = board ? {
+          id: board._id,
+          name: board.name,
+          columns: board.columns?.map(column => ({
+            id: column._id,
+            title: column.title,
+            tasks: column.tasks?.map(task => ({
+              id: task._id || task.id,
+              title: task.title,
+              description: task.description,
+              priority: task.priority,
+              status: column.title,
+              epicLabel: task.epicLabel,
+              assignee: task.assignee ? {
+                id: task.assignee.id || task.assignee._id,
+                name: task.assignee.name
+              } : null,
+              dueDate: task.dueDate,
+              createdAt: task.createdAt
+            })) || []
           })) || []
-        })) || []
-      } : null;
-      
-      // Convert messages to the format expected by the API
-      const chatHistory = messages
-        .filter(msg => (msg.type === 'user' || msg.type === 'bot') && msg.id !== botMessage.id)
-        .map(msg => ({
-          role: msg.type === 'user' ? 'user' : 'assistant',
-          content: msg.text
-        }));
-      
-      // Send message to Ollama
-      const response = await sendMessageToOllama({
-        message: userInput,
-        messages: chatHistory,
-        board: boardContext,
-        model: 'deepseek-coder:6.7b',
-        options: {
-          temperature: 0.7,
-          max_tokens: 2000
-        }
-      });
-      
-      // Update the bot message with the response
-      setMessages(prev => 
-        prev.map(msg => 
+        } : null;
+        
+        // Send message to Ollama
+        const response = await sendMessageToOllama({
+          message: userInput,
+          board: boardContext,
+          model: 'deepseek-coder:6.7b'
+        });
+        
+        // Update the message with the response
+        setMessages(prev => prev.map(msg => 
           msg.id === botMessage.id 
             ? { ...msg, text: response, isTyping: false }
             : msg
-        )
-      );
-    } catch (error) {
-      console.error('Error getting AI response:', error);
-      
-      // Update with error message
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === botMessage.id 
+        ));
+        
+      } catch (error) {
+        console.error('Error getting AI response:', error);
+        setMessages(prev => prev.map(msg => 
+          msg.id === botMessage?.id 
             ? { 
                 ...msg, 
-                text: `I'm sorry, I encountered an error: ${error.message || 'Unknown error'}.\n\n` +
-                      'Please make sure Ollama is running and the model is installed correctly.',
+                text: 'Sorry, I encountered an error processing your request. Please try again later.',
                 type: 'error',
-                isTyping: false 
-              }
+                isTyping: false
+              } 
             : msg
-        )
-      );
-    } finally {
-      setIsTyping(false);
+        ));
+      } finally {
+        setIsTyping(false);
+      }
       
-      // Scroll to bottom after message is added
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      addMessage('An unexpected error occurred. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
     }
-  }, [inputValue, board, messages, addMessage]);
+  }, [inputValue, isLoading, board, addMessage, checkOllamaConnection]);
   
-  // Handle input key down (for Enter key without Shift)
+  // Handle input changes
+  const handleInput = useCallback((e) => {
+    setInputValue(e.target.value);
+    
+    // Auto-resize textarea
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 120)}px`;
+    }
+  }, []);
+  
+  // Handle keyboard shortcuts
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
+    // Submit on Cmd+Enter or Ctrl+Enter
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       handleSubmit(e);
     }
   }, [handleSubmit]);
   
-  // Handle input change
-  const handleInputChange = useCallback((e) => {
-    setInputValue(e.target.value);
-  }, []);
-  
-  // Auto-resize textarea as user types
-  const handleInput = useCallback((e) => {
-    const textarea = e.target;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
-  }, []);
-
-  // Auto-scroll to bottom when messages change
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (chatContainerRef.current && !isMinimized) {
-      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-      const isScrolledToBottom = scrollHeight - (scrollTop + clientHeight) < 100;
-      
-      if (isScrolledToBottom) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Check Ollama status when chat is opened
+  useEffect(() => {
+    if (isOpen) {
+      checkOllamaConnection();
     }
-  }, [messages, isTyping, isMinimized]);
+  }, [isOpen, checkOllamaConnection]);
   
-  // Focus input when chat is opened or restored
+  // Focus input when chat is opened
   useEffect(() => {
-    if (isOpen && !isMinimized) {
+    if (isOpen) {
       inputRef.current?.focus();
     }
-  }, [isOpen, isMinimized]);
+  }, [isOpen]);
 
   return (
     <div className="chat-widget">
       {/* Chat Toggle Button */}
       <button 
-        className={`chat-toggle-button ${isOpen ? 'active' : ''}`} 
-        onClick={handleToggleChat}
+        className={`chat-toggle-button ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? 'Close chat' : 'Open chat'}
-        title="AI Assistant"
-        aria-expanded={isOpen}
       >
         <FontAwesomeIcon 
           icon={isOpen ? faTimes : faRobot} 
           className="chat-icon" 
-          aria-hidden="true"
+          aria-hidden="true" 
         />
-        {!isOpen && messages.some(m => m.type === 'user') && (
-          <span className="chat-badge" aria-label="You have unread messages">
-            {messages.filter(m => m.type === 'user').length}
-          </span>
-        )}
       </button>
       
       {/* Chat Popup */}
       {isOpen && (
-        <div 
-          className={`chat-popup ${isMinimized ? 'minimized' : ''}`}
-          role="dialog"
-          aria-labelledby="chat-header-title"
-          aria-describedby="chat-description"
-        >
+        <div className="chat-popup">
+          {/* Chat Header */}
           <div className="chat-header">
-            <div className="header-left">
-              <FontAwesomeIcon 
-                icon={faRobot} 
-                className="header-icon" 
-                aria-hidden="true"
-              />
-              <h3 id="chat-header-title">Kanban AI Assistant</h3>
-              {ollamaStatus.isLoading ? (
-                <span className="status-badge">Connecting...</span>
-              ) : (
-                <StatusBadge isOnline={ollamaStatus.isRunning} />
-              )}
+            <div className="chat-header-left">
+              <FontAwesomeIcon icon={faRobot} className="header-icon" />
+              <h3>Kanban AI Assistant</h3>
+              <StatusBadge isOnline={ollamaStatus.isRunning} />
             </div>
-            <div className="header-actions">
+            <div className="chat-header-actions">
+
               <button 
-                onClick={handleMinimize} 
-                className="minimize-button"
-                title={isMinimized ? 'Restore chat' : 'Minimize chat'}
-                aria-label={isMinimized ? 'Restore chat' : 'Minimize chat'}
-              >
-                {isMinimized ? (
-                  <FontAwesomeIcon icon={faExpand} />
-                ) : (
-                  <FontAwesomeIcon icon={faMinus} />
-                )}
-              </button>
-              <button 
-                onClick={handleToggleChat} 
-                className="close-button"
-                title="Close chat"
+                className="header-button close-button"
+                onClick={() => setIsOpen(false)}
                 aria-label="Close chat"
               >
-                <FontAwesomeIcon icon={faTimes} aria-hidden="true" />
+                <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
           </div>
           
-          {!isMinimized && (
-            <>
-              <div 
-                className="chat-messages" 
-                ref={chatContainerRef}
-                role="log"
-                aria-live="polite"
-              >
-                {/* Welcome message for new chats */}
-                {messages.length <= 1 && (
-                  <WelcomeMessage onExampleClick={handleExampleClick} />
-                )}
-                
-                {/* Render chat messages */}
-                {messages.map((message) => (
-                  <ChatMessage 
-                    key={message.id}
-                    id={message.id}
-                    message={message.text} 
-                    type={message.type}
-                    isTyping={message.isTyping}
-                  />
-                ))}
-                
-                {/* Auto-scroll anchor */}
-                <div ref={messagesEndRef} style={{ height: '1px' }} aria-hidden="true" />
-                
-                {/* Loading indicator when Ollama is connecting */}
-                {ollamaStatus.isLoading && (
-                  <div className="typing-indicator">
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                  </div>
-                )}
-                
-                {/* Typing indicator for bot response */}
-                {isTyping && messages[messages.length - 1]?.type === 'user' && (
-                  <div className="typing-indicator">
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                    <div className="typing-dot"></div>
-                  </div>
-                )}
-                
-                {/* Ollama status message */}
-                {!ollamaStatus.isLoading && !ollamaStatus.isRunning && (
-                  <div className="ollama-status">
-                    <span className="status-icon">⚠️</span>
-                    <span>
-                      {ollamaStatus.error 
-                        ? `Error: ${ollamaStatus.error}` 
-                        : 'Ollama is not running. Some features may be limited.'}
-                    </span>
-                  </div>
-                )}
-              </div>
+          {/* Chat Messages */}
+          <div className="chat-messages" ref={chatContainerRef}>
+              {messages.length === 1 && (
+                <WelcomeMessage onExampleClick={handleExampleClick} />
+              )}
               
-              <form 
-                onSubmit={handleSubmit} 
-                className="chat-input-form"
-                aria-label="Chat input form"
+              {messages.map((msg) => (
+                <ChatMessage
+                  key={msg.id}
+                  message={msg.text}
+                  type={msg.type}
+                  isTyping={msg.isTyping}
+                  id={msg.id}
+                />
+              ))}
+              
+              {ollamaStatus.isLoading && (
+                <div className="status-message">
+                  <DnaSpinner className="small" />
+                  <span>Connecting to AI assistant...</span>
+                </div>
+              )}
+              
+              {!ollamaStatus.isLoading && !ollamaStatus.isRunning && (
+                <div className="status-message error">
+                  <span>AI assistant is offline. Please make sure Ollama is running.</span>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {/* Chat Input */}
+            <form 
+              className="chat-input-form"
+              onSubmit={handleSubmit}
+              aria-label="Chat input form"
+            >
+              <div 
+                className={`chat-input-container ${inputValue.trim() ? 'has-text' : ''} ${isLoading ? 'loading' : ''}`}
               >
-                <div className="chat-input-container">
-                  <div className="input-wrapper">
-                    <textarea
-                      ref={inputRef}
-                      value={inputValue}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyDown}
-                      onInput={handleInput}
-                      placeholder="Ask me anything about your tasks..."
-                      className="chat-input"
-                      disabled={isTyping || ollamaStatus.isLoading}
-                      rows={1}
-                      aria-label="Type your message"
-                      aria-multiline="true"
-                      aria-required="true"
-                    />
-                    <button 
-                      type="submit" 
-                      className="send-button"
-                      disabled={!inputValue.trim() || isTyping || ollamaStatus.isLoading}
-                      aria-label="Send message"
-                      title="Send message"
-                    >
-                      <FontAwesomeIcon 
-                        icon={isTyping ? faEllipsisH : faPaperPlane} 
-                        className="send-icon" 
-                        aria-hidden="true"
-                      />
-                    </button>
-                  </div>
-                  
-                  {/* Character counter */}
-                  {inputValue.length > 0 && (
-                    <div className="character-counter">
-                      {inputValue.length}/1000
-                    </div>
-                  )}
-                  
-                  {/* Status indicator */}
-                  {ollamaStatus.isLoading ? (
-                    <div className="ollama-status">
-                      <span className="status-icon">🔍</span>
-                      <span>Connecting to Ollama...</span>
-                    </div>
-                  ) : !ollamaStatus.isRunning ? (
-                    <div className="ollama-status">
-                      <span className="status-icon">⚠️</span>
-                      <span>Ollama is not running. Some features may be limited.</span>
-                    </div>
-                  ) : null}
+                <div className="input-wrapper">
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={handleInput}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask me anything about your tasks..."
+                    className="chat-input"
+                    disabled={isLoading}
+                    rows={1}
+                    aria-label="Type your message"
+                    aria-multiline="true"
+                  />
+                  <button 
+                    type="submit" 
+                    className="send-button"
+                    disabled={!inputValue.trim() || isLoading}
+                    aria-label="Send message"
+                  >
+                    {isLoading ? (
+                      <DnaSpinner />
+                    ) : (
+                      <FontAwesomeIcon icon={faPaperPlane} className="send-icon" />
+                    )}
+                  </button>
                 </div>
                 
-                {/* Help text */}
-                <div className="help-text">
-                  <small>
-                    Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line
-                  </small>
-                </div>
-              </form>
-            </>
-          )}
+
+              </div>
+            </form>
         </div>
       )}
     </div>

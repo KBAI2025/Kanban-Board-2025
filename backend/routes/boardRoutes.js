@@ -29,6 +29,60 @@ const getBoard = async (req, res, next) => {
   }
 };
 
+// Get a single board by ID or handle default board
+router.get('/:id', async (req, res) => {
+  try {
+    let board;
+    
+    // Handle default board case
+    if (req.params.id === 'default-board') {
+      console.log('Fetching default board...');
+      board = await Board.findOne({ name: 'Default Board' });
+      
+      // If no default board exists, create one
+      if (!board) {
+        console.log('No default board found, creating a new one...');
+        board = new Board({
+          name: 'Default Board',
+          columns: [
+            { id: 'todo', title: 'To Do', tasks: [] },
+            { id: 'in-progress', title: 'In Progress', tasks: [] },
+            { id: 'done', title: 'Done', tasks: [] }
+          ]
+        });
+        await board.save();
+        console.log('Created new default board:', board);
+      }
+      
+      // Sort tasks by position
+      board.columns.forEach(column => {
+        column.tasks.sort((a, b) => a.position - b.position);
+      });
+      return res.json(board);
+    }
+    
+    // Handle regular board ID
+    const foundBoard = await Board.findById(req.params.id);
+    if (!foundBoard) {
+      return res.status(404).json({ message: 'Board not found' });
+    }
+    board = foundBoard;
+    
+    // Sort tasks by position
+    board.columns.forEach(column => {
+      column.tasks.sort((a, b) => a.position - b.position);
+    });
+    
+    res.json(board);
+  } catch (err) {
+    console.error('Error fetching board:', err);
+    res.status(500).json({ 
+      message: 'Error fetching board',
+      error: err.message 
+    });
+  }
+});
+
 // Get all boards
 router.get('/', async (req, res) => {
   try {

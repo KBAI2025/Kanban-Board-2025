@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getBoard as apiGetBoard, createBoard as apiCreateBoard } from '../services/api';
 
 // Create the context
 const BoardContext = createContext();
@@ -10,43 +11,73 @@ export const BoardProvider = ({ children, initialBoard }) => {
   const [error, setError] = useState(null);
 
   // Function to update the board
-  const updateBoard = (newBoardData) => {
+  const updateBoard = useCallback((newBoardData) => {
     setBoard(prevBoard => ({
       ...prevBoard,
       ...newBoardData
     }));
-  };
+  }, []);
 
   // Function to refresh the board data
-  const refreshBoard = async (boardId) => {
-    if (!boardId) return;
+  const refreshBoard = useCallback(async (boardId) => {
+    // Always use 'default-board' as the board ID
+    const boardIdToUse = 'default-board';
     
     setIsLoading(true);
+    setError(null);
+    
+    console.log(`[BoardContext] Refreshing board with ID: ${boardIdToUse}`);
+    
     try {
-      const response = await fetch(`/api/boards/${boardId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch board data');
+      // First, try to fetch the board by ID
+      let data;
+      
+      try {
+        data = await apiGetBoard(boardIdToUse);
+      } catch (error) {
+        // If board not found, create a new default board
+        if (error.response?.status === 404) {
+          console.log('[BoardContext] Default board not found, creating a new one...');
+          data = await apiCreateBoard({
+            name: 'Default Board',
+            columns: [
+              { id: 'todo', title: 'To Do', tasks: [] },
+              { id: 'in-progress', title: 'In Progress', tasks: [] },
+              { id: 'done', title: 'Done', tasks: [] }
+            ]
+          });
+        } else {
+          // Re-throw other errors
+          throw error;
+        }
       }
-      const data = await response.json();
+      
+      console.log('[BoardContext] Received board data:', data);
       setBoard(data);
-      setError(null);
+      return data;
     } catch (err) {
-      console.error('Error fetching board data:', err);
+      console.error('Error in refreshBoard:', err);
       setError(err.message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   // Initial data loading
   useEffect(() => {
     if (initialBoard?._id) {
-      refreshBoard(initialBoard._id);
+      console.log('Initial board has ID, refreshing:', initialBoard._id);
+      refreshBoard(initialBoard._id).catch(console.error);
     } else if (initialBoard) {
+      console.log('Setting initial board without refresh:', initialBoard);
       setBoard(initialBoard);
       setIsLoading(false);
+    } else {
+      console.log('No initial board provided, setting loading to false');
+      setIsLoading(false);
     }
-  }, [initialBoard?._id]);
+  }, [initialBoard, refreshBoard]);
 
   // Value to be provided by the context
   const value = {

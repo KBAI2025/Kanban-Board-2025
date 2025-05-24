@@ -1,0 +1,90 @@
+.dna-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.dna-spinner.small {
+  width: 20px;
+  height: 20px;
+  transform: scale(0.8);
+}
+
+.strand {
+  position: relative;
+  width: 8px;
+  height: 100%;
+  animation: fadeIn 1s forwards;
+  margin: 0 0.25px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.top, .bottom {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 8px;
+  width: 8px;
+  border-radius: 100%;
+  animation: 3s move infinite ease-in-out;
+  animation-delay: var(--delay, 0s);
+  background-color: var(--bg-start);
+}
+
+.dna-spinner.small .top,
+.dna-spinner.small .bottom {
+  height: 6px;
+  width: 6px;
+}
+
+@keyframes move {
+  0% {
+    background-color: var(--bg-start);
+    top: 100%;
+    z-index: -3;
+  }
+  25% { 
+    height: 2px;
+    width: 2px;
+    background-color: var(--bg-middle);
+    z-index: -3;
+  }
+  50% {
+    background-color: var(--bg-end);
+    top: 0%;
+    z-index: -3;
+  }
+  75% {
+    height: 4px;
+    width: 4px;
+    background-color: var(--bg-middle);
+    z-index: 3;
+  }
+  100% {
+    top: 100%;
+    background-color: var(--bg-start);
+    z-index: 3;
+  }
+}
+
+/* Adjust for small size */
+.dna-spinner.small .top,
+.dna-spinner.small .bottom {
+  height: 3px;
+  width: 3px;
+}
+
+.dna-spinner.small .top {
+  top: 0;
+}
+
+.dna-spinner.small .bottom {
+  top: 100%;
+}

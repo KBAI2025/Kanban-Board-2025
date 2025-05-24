@@ -1,0 +1,116 @@
+.gear-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;  /* Reduced from 60px */
+  position: relative;
+}
+
+/* Small variant for status messages and buttons */
+.gear-loader.small {
+  height: 16px;  /* Reduced from 20px */
+}
+
+/* Default gear styles */
+.gear {
+  --gear-diameter: 16px;  /* Reduced from 20px */
+  --tooth-width: 2px;     /* Reduced from 3px */
+  --tooth-height: calc(var(--gear-diameter) * 1.2);
+  
+  height: var(--gear-diameter);
+  width: var(--gear-diameter);
+  background-color: var(--primary-color, #5c77ff);
+  border-radius: 50%;
+  position: relative;
+  animation: spinner 4000ms infinite linear;
+  box-sizing: content-box;
+}
+
+/* White background variant for chat loader */
+.chat-gear-loader .gear {
+  background-color: #fff;
+  padding: 2px;
+}
+
+/* Ensure the chat gear loader has a white background */
+.chat-gear-loader {
+  background-color: #fff;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+}
+
+.gear::after {
+  --center: calc(var(--gear-diameter) / 2.5);
+  content: "";
+  position: absolute;
+  top: calc(var(--gear-diameter) / 2 - var(--center) / 2);
+  left: calc(var(--gear-diameter) / 2 - var(--center) / 2);
+  z-index: 10;
+  height: var(--center);
+  width: var(--center);
+  border-radius: 50%;
+  background-color: #fff;
+}
+
+/* White center for chat loader */
+.chat-gear-loader .gear::after {
+  border: 1px solid var(--primary-color, #5c77ff);
+}
+
+.tooth {
+  background-color: var(--primary-color, #5c77ff);
+  height: var(--tooth-height);
+  width: var(--tooth-width);
+  position: absolute;
+  left: calc(var(--gear-diameter) / 2 - var(--tooth-width) / 2);
+  top: calc((var(--gear-diameter) - var(--tooth-height)) / 2);
+  border-radius: 2px;  /* Reduced from 4px */
+}
+
+/* Position each tooth */
+.tooth1 { transform: rotate(0deg); }
+.tooth2 { transform: rotate(30deg); }
+.tooth3 { transform: rotate(60deg); }
+.tooth4 { transform: rotate(90deg); }
+.tooth5 { transform: rotate(120deg); }
+.tooth6 { transform: rotate(150deg); }
+
+/* Second gear */
+.gear:last-child {
+  --gear-diameter: 12px;  /* Reduced from 20px */
+  margin-left: 6px;     /* Reduced from 8px */
+  margin-top: 12px;     /* Reduced from 20px */
+  animation: spinner-rev 4000ms linear infinite;
+}
+
+/* Animations */
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinner-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+/* Small spinner variant */
+.gear-loader.small {
+  height: 14px;  /* Reduced from 20px */
+}
+
+.gear-loader.small .gear {
+  --gear-diameter: 12px;  /* Reduced from 16px */
+  --tooth-width: 1.5px;  /* Reduced from 2px */
+}
+
+.gear-loader.small .gear:last-child {
+  --gear-diameter: 8px;   /* Reduced from 10px */
+  margin-top: 6px;       /* Reduced from 10px */
+  margin-left: 3px;      /* Reduced from 4px */
+}

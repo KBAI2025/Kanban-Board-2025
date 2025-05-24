@@ -88,14 +88,31 @@ ollamaApi.interceptors.response.use(
  * @returns {string} - Formatted string for the LLM prompt
  */
 function formatMongoDBDataForPrompt(data) {
-  if (!data || data.length === 0) return '';
+  if (!data || !data.length) return 'No relevant data found in the database.';
   
-  return `\n\nRelevant data from the database:\n${data.map((item, index) => {
-    const source = item.source ? ` (source: ${item.source})` : '';
-    const type = item.type ? `[${item.type}] ` : '';
-    const content = JSON.stringify(item.data, null, 2);
-    return `--- ${type}${source} ---\n${content}\n`;
-  }).join('\n')}\n`;
+  const formattedData = data.map(item => {
+    if (item.type === 'task') {
+      const task = item.data;
+      const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+      const assignee = task.assignee ? `\n👤 **Assignee:** ${task.assignee}` : '';
+      const labels = task.labels?.length ? `\n🏷️ **Labels:** ${task.labels.join(', ')}` : '';
+      const priority = task.priority ? `\n⚠️ **Priority:** ${task.priority}` : '';
+      const description = task.description ? `\n\n${task.description}` : '';
+      
+      return `### 📌 ${task.title} (${task.column?.name || 'No Status'})\n📅 **Due:** ${dueDate}${priority}${assignee}${labels}${description}`;
+    } else if (item.type === 'board') {
+      const board = item.data;
+      const columns = board.columns?.map(col => `- ${col.name} (${col.tasks?.length || 0} tasks)`).join('\n') || 'No columns';
+      return `### 🏁 Board: ${board.name}\n\n**Columns:**\n${columns}`;
+    } else if (item.type === 'column') {
+      const column = item.data;
+      const tasks = column.tasks?.map(task => `- ${task.title}`).join('\n') || 'No tasks';
+      return `### 📋 Column: ${column.name}\n\n**Tasks:**\n${tasks}`;
+    }
+    return `### 📄 ${item.type}\n\`\`\`json\n${JSON.stringify(item.data, null, 2)}\n\`\`\``;
+  }).join('\n\n---\n\n');
+  
+  return `## 📊 Relevant Data\n\n${formattedData}`;
 }
 
 /**
@@ -133,16 +150,56 @@ export const sendMessageToOllama = async ({
     const systemPrompt = `You are a helpful assistant for a Kanban board application. 
 You help users manage their tasks, answer questions, and provide insights about their work.
 
-Board Context:
+# Response Formatting Guidelines
+1. **Always format your response in clear, well-structured Markdown**
+   - Use proper line breaks between paragraphs and sections
+   - Leave a blank line between different sections
+   - Keep related content together with single line breaks
+
+2. **For task lists or multiple items**:
+   - Use bullet points (•) for simple lists
+   - Use numbered lists for steps or priorities
+   - Group related items under clear section headers
+   - Add a blank line before and after lists
+
+3. **For task details**:
+   - Start with a clear title/heading
+   - Include key metadata (status, due date, assignee)
+   - Add a brief description if needed
+   - Use emojis for better visual scanning
+   - Separate different task details with line breaks
+
+4. **For code or technical content**:
+   \`\`\`language
+   // Code goes here
+   \`\`\`
+   - Always add a blank line before and after code blocks
+
+5. **For important notes or warnings**:
+   > ⚠️ **Note:** Important information goes here
+   
+   - Add a blank line before and after blockquotes
+
+6. **For success/error messages**:
+   - ✅ Success: Action completed successfully
+   - ❌ Error: Something went wrong
+   - Add a blank line before status messages
+
+# Current Context
+## Board Information
 ${board ? formatBoardData(board) : 'No board data available.'}
 
+## Relevant Data
 ${dataContext}
 
-Guidelines:
+# Response Rules
 - Be concise but helpful
-- Format your responses in Markdown
-- Use bullet points and lists for multiple items
-- Format code snippets with backticks
+- Use clear section headers (##, ###)
+- Format all responses in Markdown
+- Use emojis for better visual hierarchy
+- Include all relevant details but keep it scannable
+- Always use proper line breaks for better readability
+- Separate different ideas or sections with blank lines
 - Be polite and professional`;
 
     // Prepare the conversation context
@@ -245,8 +302,10 @@ function formatBoardData(board) {
 }
 
 /**
- * Clean up the response from the AI
+ * Clean up and enhance the response from the AI
  * @private
+ * @param {string} text - The raw response text from the AI
+ * @returns {string} Cleaned and formatted response
  */
 function cleanResponse(text) {
   if (!text) return '';
@@ -254,11 +313,66 @@ function cleanResponse(text) {
   // Remove any leading/trailing whitespace
   let cleaned = text.trim();
   
-  // Remove any markdown code block markers if they're not properly formatted
-  cleaned = cleaned.replace(/^```(?:\w*\n)?([\s\S]*?)\n```$/gm, '$1');
+  // Add line breaks after headings
+  cleaned = cleaned.replace(/^(#{1,6})\s+(.*)$/gm, '\n$1 $2\n');
   
-  // Trim again after cleaning
-  return cleaned.trim();
+  // Add line breaks before and after lists
+  cleaned = cleaned.replace(/(^|\n)([-*+]|\d+\.)\s+/g, '\n$1$2 ');
+  cleaned = cleaned.replace(/(\n[-*+]\s+.*)(\n\s*\n)/g, '$1\n$2');
+  
+  // Add line breaks around code blocks
+  cleaned = cleaned.replace(/(\n)?```(\w*)([\s\S]*?)```(\n)?/g, (match, p1, lang, code, p4) => {
+    return `\n\n\`\`\`${lang || ''}${code}\`\`\`\n\n`;
+  });
+  
+  // Add line breaks after paragraphs
+  cleaned = cleaned.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n\n');
+  
+  // Clean up multiple consecutive line breaks
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  // Add spacing around bold and italic text
+  cleaned = cleaned
+    .replace(/\*\*([^*]+)\*\*/g, ' **$1** ')
+    .replace(/\*([^*]+)\*/g, ' *$1* ');
+  
+  // Ensure proper spacing after sentences
+  cleaned = cleaned.replace(/([.!?])([A-Z])/g, '$1 $2');
+  
+  // Split into lines and clean up each line
+  const lines = cleaned.split('\n').map(line => {
+    // Remove extra spaces
+    line = line.trim();
+    // Add a space after list markers if missing
+    line = line.replace(/^(-|\d+\.)([^\s])/, '$1 $2');
+    return line;
+  }).filter(line => line.length > 0);
+  
+  // Join lines with proper spacing
+  cleaned = lines.join('\n');
+  
+  // Add proper spacing between sections
+  cleaned = cleaned
+    // Add space after headings
+    .replace(/(^#+ .+$)\n(?!\n)/gm, '$1\n\n')
+    // Add space before headings
+    .replace(/([^\n])\n(#+ )/g, '$1\n\n$2')
+    // Ensure two newlines between paragraphs
+    .replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
+  
+  // Ensure the response ends with proper punctuation
+  if (!/[.!?]$/.test(cleaned)) {
+    cleaned = cleaned.replace(/[,.!?]*$/, '') + '.';
+  }
+  
+  // Final cleanup of any remaining issues
+  cleaned = cleaned
+    .replace(/\s+([.,!?])/g, '$1')  // Remove spaces before punctuation
+    .replace(/\s{2,}/g, ' ')         // Remove multiple spaces
+    .replace(/\n\s+\n/g, '\n\n')    // Clean up line breaks
+    .trim();
+  
+  return cleaned;
 }
 
 /**

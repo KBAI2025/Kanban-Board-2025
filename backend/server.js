@@ -3,14 +3,16 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const boardRoutes = require('./routes/boardRoutes');
+const llmRoutes = require('./routes/llmRoutes');
 const app = express();
 
 // Enable CORS for all routes
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 // CORS configuration
+// Allow all origins in development for easier testing
 const allowedOrigins = isDevelopment 
-  ? ['http://localhost:8080', 'http://localhost:8081', 'http://192.168.2.41:8080', 'http://192.168.2.41:8081']
+  ? ['http://localhost:8080', 'http://localhost:8081', 'http://localhost:8092', 'http://192.168.2.41:8080', 'http://192.168.2.41:8081', 'http://192.168.2.41:8092']
   : ['http://localhost:8080', 'http://localhost:8081'];
 
 // CORS middleware function
@@ -44,8 +46,9 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'Server is running and CORS is working!' });
 });
 
-// Board routes
+// API routes
 app.use('/api/boards', boardRoutes);
+app.use('/api/llm', llmRoutes);
 
 // 404 handler
 app.use((req, res) => {
