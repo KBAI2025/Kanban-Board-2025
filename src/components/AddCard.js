@@ -243,9 +243,6 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         </div>
         
         <div className="form-actions">
-          <button type="submit" className="primary" disabled={isAdding}>
-            {isAdding ? 'Adding...' : 'Add Card'}
-          </button>
           <button 
             type="button" 
             className="secondary"
@@ -263,6 +260,9 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
             disabled={isAdding}
           >
             Cancel
+          </button>
+          <button type="submit" className="primary" disabled={isAdding}>
+            {isAdding ? 'Adding...' : 'Add Card'}
           </button>
         </div>
       </form>
