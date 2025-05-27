@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const boardRoutes = require('./routes/boardRoutes');
 const llmRoutes = require('./routes/llmRoutes');
+const cardRoutes = require('./routes/cards');
 const app = express();
 
 // Enable CORS for all routes
@@ -49,6 +50,7 @@ app.get('/api/test', (req, res) => {
 // API routes
 app.use('/api/boards', boardRoutes);
 app.use('/api/llm', llmRoutes);
+app.use('/api/cards', cardRoutes);
 
 // 404 handler
 app.use((req, res) => {

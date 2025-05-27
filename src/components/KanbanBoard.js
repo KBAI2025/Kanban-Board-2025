@@ -131,7 +131,7 @@ const Column = ({ column, onDrop, onEdit, onCardAdded, boardId }) => {
   return (
     <div className="kanban-column">
       <div className="column-header">
-        <h3>{column.title?.toUpperCase?.() || 'UNKNOWN COLUMN'}</h3>
+        <h3>{column?.title?.toUpperCase?.() || 'UNKNOWN COLUMN'}</h3>
         <span className="task-counter">{taskCount} {taskCount === 1 ? 'ticket' : 'tickets'}</span>
       </div>
       <div className="kanban-tasks">
@@ -175,11 +175,10 @@ const Column = ({ column, onDrop, onEdit, onCardAdded, boardId }) => {
         )}
       </div>
       <AddCard 
-        id={`add-card-${column.id}`}
+        key={`add-card-${column.id}`}
         boardId={boardId} 
         columnId={column.id} 
-        onCardAdded={onCardAdded} 
-        style={{ display: 'none' }}
+        onCardAdded={onCardAdded}
       />
     </div>
   );
@@ -286,9 +285,14 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
   }, [board?.columns, searchText, selectedAssignee, selectedPriority]);
 
   // Use filtered columns if filters are active, otherwise use original columns
-  const displayColumns = searchText || selectedAssignee !== 'all' || selectedPriority !== 'all' 
-    ? filteredColumns 
-    : board?.columns || [];
+  const displayColumns = useMemo(() => {
+    const cols = searchText || selectedAssignee !== 'all' || selectedPriority !== 'all' 
+      ? filteredColumns 
+      : board?.columns || [];
+    
+    // Ensure we have valid columns
+    return cols.filter(col => col && (col.id || col.title));
+  }, [searchText, selectedAssignee, selectedPriority, filteredColumns, board?.columns]);
 
   useEffect(() => {
     let isMounted = true;
@@ -305,7 +309,7 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
         // If we have initialBoard, use it
         if (initialBoard) {
           console.log('Using initialBoard:', initialBoard);
-          // Ensure all required columns are present
+          // Ensure all required columns are present and have valid IDs
           const updatedBoard = ensureAllColumns(initialBoard);
           setInternalBoard(updatedBoard);
           setError(null);
@@ -325,7 +329,7 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
             taskCount: c.tasks ? c.tasks.length : 0
           })));
           
-          // Ensure all required columns are present
+          // Ensure all required columns are present and have valid IDs
           const updatedData = ensureAllColumns(data);
           
           const boardWithSortedTasks = {
@@ -369,72 +373,124 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
     };
   }, [boardId, onBoardUpdate, initialBoard, propBoard]);
 
-  // Function to ensure all required columns are present in the board
+  // Function to ensure all required columns are present and have valid IDs
   const ensureAllColumns = (boardData) => {
-    if (!boardData || !boardData.columns) {
-      return defaultBoard;
-    }
-    
-    // Define required columns with consistent IDs
-    const requiredColumns = {
-      'todo': { id: 'todo', title: 'To Do', tasks: [] },
-      'in-progress': { id: 'in-progress', title: 'In Progress', tasks: [] },
-      'review': { id: 'review', title: 'Review', tasks: [] },
-      'done': { id: 'done', title: 'Done', tasks: [] }
-    };
-    
-    // Create a map of existing columns (case-insensitive)
-    const existingColumns = {};
-    boardData.columns.forEach(column => {
-      existingColumns[column.id.toLowerCase()] = column;
-    });
-    
-    // Merge existing columns with required columns
-    const mergedColumns = [];
-    
-    // Add all required columns in order
-    Object.entries(requiredColumns).forEach(([key, requiredColumn]) => {
-      const existingColumn = existingColumns[key.toLowerCase()];
-      
-      if (existingColumn) {
-        // Preserve existing tasks if they exist
-        const tasks = existingColumn.tasks || [];
-        mergedColumns.push({
-          ...requiredColumn, // Use the standardized column definition
-          ...existingColumn, // Override with any existing column properties
-          tasks,             // Make sure tasks are preserved
-          id: requiredColumn.id // Ensure consistent ID casing
-        });
-      } else {
-        mergedColumns.push(requiredColumn);
+    try {
+      // Validate input
+      if (!boardData || typeof boardData !== 'object') {
+        console.warn('Invalid board data provided, using default board');
+        return { ...defaultBoard };
       }
-    });
-    
-    // Add any additional columns that aren't in the required list
-    boardData.columns.forEach(column => {
-      const isAlreadyIncluded = Object.keys(requiredColumns).some(
-        key => key.toLowerCase() === column.id.toLowerCase()
-      );
+
+      // Ensure columns is an array
+      if (!Array.isArray(boardData.columns)) {
+        console.warn('No columns array found in board data, using default columns');
+        return {
+          ...boardData,
+          columns: [...defaultBoard.columns]
+        };
+      }
       
-      if (!isAlreadyIncluded) {
-        mergedColumns.push({
+      // Define required columns with consistent IDs
+      const requiredColumns = {
+        'todo': { id: 'todo', title: 'To Do', tasks: [] },
+        'in-progress': { id: 'in-progress', title: 'In Progress', tasks: [] },
+        'review': { id: 'review', title: 'Review', tasks: [] },
+        'done': { id: 'done', title: 'Done', tasks: [] }
+      };
+
+      // Create maps for existing columns
+      const columnsById = new Map();
+      const columnsByTitle = new Map();
+      const validColumns = [];
+      
+      // First pass: process all columns and ensure they have valid IDs
+      boardData.columns.forEach((column, index) => {
+        if (!column || typeof column !== 'object') {
+          console.warn(`Skipping invalid column at index ${index}:`, column);
+          return;
+        }
+        
+        // Generate a stable ID if none exists
+        let columnId = column.id || column._id || `column-${index}`;
+        columnId = String(columnId).trim();
+        
+        // Create a safe column object with guaranteed fields
+        const safeColumn = {
           ...column,
-          id: column.id.toLowerCase() // Normalize the ID
-        });
-      }
-    });
-    
-    // Log the merged columns for debugging
-    console.log('Merged columns:', mergedColumns.map(c => ({
-      id: c.id,
-      title: c.title,
-      taskCount: c.tasks ? c.tasks.length : 0
-    })));
-    
-    return {
-      ...boardData,
-      columns: mergedColumns
-    };
+          id: columnId,
+          title: column.title || `Column ${index + 1}`,
+          tasks: Array.isArray(column.tasks) ? column.tasks : []
+        };
+        
+        // Map by ID and title for easy lookup
+        columnsById.set(columnId, safeColumn);
+        if (safeColumn.title) {
+          columnsByTitle.set(safeColumn.title.toLowerCase(), safeColumn);
+        }
+        
+        validColumns.push(safeColumn);
+      });
+      
+      // Second pass: merge with required columns
+      const mergedColumns = [];
+      const usedIds = new Set();
+      
+      // Add all required columns in order, preserving any existing data
+      Object.entries(requiredColumns).forEach(([key, requiredColumn]) => {
+        // Try to find by ID first
+        let existingColumn = columnsById.get(key);
+        
+        // If not found by ID, try to find by title
+        if (!existingColumn) {
+          const titleMatch = requiredColumn.title.toLowerCase();
+          existingColumn = columnsByTitle.get(titleMatch);
+        }
+        
+        if (existingColumn) {
+          // Merge with required column to ensure all fields are present
+          mergedColumns.push({
+            ...requiredColumn,
+            ...existingColumn,
+            id: requiredColumn.id, // Use the standard ID
+            title: existingColumn.title || requiredColumn.title,
+            tasks: Array.isArray(existingColumn.tasks) ? existingColumn.tasks : []
+          });
+          usedIds.add(existingColumn.id.toLowerCase());
+        } else {
+          // Add the required column if it doesn't exist
+          mergedColumns.push(requiredColumn);
+        }
+      });
+      
+      // Add any additional columns that aren't in the required list
+      validColumns.forEach(column => {
+        const columnId = column.id.toLowerCase();
+        if (!usedIds.has(columnId)) {
+          mergedColumns.push({
+            ...column,
+            tasks: Array.isArray(column.tasks) ? column.tasks : []
+          });
+          usedIds.add(columnId);
+        }
+      });
+      
+      // Log the merged columns for debugging
+      console.log('Merged columns:', mergedColumns.map(c => ({
+        id: c.id,
+        title: c.title,
+        taskCount: c.tasks ? c.tasks.length : 0
+      })));
+      
+      return {
+        ...boardData,
+        columns: mergedColumns
+      };
+    } catch (error) {
+      console.error('Error in ensureAllColumns:', error);
+      // Return a safe default if something goes wrong
+      return { ...defaultBoard };
+    }
   };
 
   const handleCardDrop = useCallback(
@@ -545,10 +601,12 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
           // Update in the backend
           await updateCardPosition(
             board._id,
-            fromColumnId,  // Use original ID for API call
+            fromColumnId,  // Source column ID
             cardId,
-            targetIndex,
-            targetColumn.id  // Use the actual column ID from the found column
+            {
+              position: targetIndex,
+              columnId: targetColumn.id
+            }
           );
           console.log('Card position updated successfully');
           
@@ -926,17 +984,21 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
     });
   }, [board?.columns, columnOrder]);
 
-  const renderColumn = (column) => {
-    if (!column || !column.tasks) {
-      console.warn('Invalid column data:', column);
+  const renderColumn = (column, index) => {
+    // Early return if column is invalid
+    if (!column) {
+      console.warn('Column is undefined at index:', index);
       return null;
     }
+
+    // Generate a stable column ID
+    const columnId = column.id || `column-${index}`;
     
-    // Debug: Log tasks before filtering
-    console.log(`Column ${column.id} tasks before filtering:`, column.tasks);
+    // Ensure we have valid tasks array
+    const tasks = Array.isArray(column.tasks) ? column.tasks : [];
     
-    // Filter out deleted tasks and handle undefined/null tasks
-    const visibleTasks = column.tasks.filter(task => {
+    // Filter out deleted tasks
+    const visibleTasks = tasks.filter(task => {
       if (!task) return false;
       const isDeleted = task.status === 'deleted' || task.deletedAt;
       if (isDeleted) {
@@ -945,22 +1007,38 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
       return !isDeleted;
     });
     
-    console.log(`Column ${column.id} visible tasks:`, visibleTasks);
+    console.log(`Column ${columnId} visible tasks:`, visibleTasks);
+    
+    // Create column data with fallbacks
+    const columnData = {
+      id: columnId,
+      title: column.title || `Column ${index + 1}`,
+      tasks: visibleTasks,
+      ...column // Spread any other column properties
+    };
     
     return (
       <Column
-        key={column.id}
-        column={{
-          ...column,
-          tasks: visibleTasks
-        }}
+        key={columnId}
+        column={columnData}
         onDrop={handleCardDrop}
         onEdit={handleCardEdit}
         onCardAdded={handleCardAdded}
-        boardId={board._id}
+        boardId={board?._id || 'default-board'}
       />
     );
   };
+  
+  // Memoize the render function to prevent unnecessary re-renders
+  const renderColumns = useMemo(() => {
+    if (!displayColumns || !Array.isArray(displayColumns)) {
+      return <div className="no-columns">No columns to display</div>;
+    }
+    
+    return displayColumns
+      .filter(column => column) // Filter out any null/undefined columns
+      .map((column, index) => renderColumn(column, index));
+  }, [displayColumns, handleCardDrop, handleCardEdit, handleCardAdded, board?._id]);
 
   if (isLoading) {
     return <div className="loading">Loading board...</div>;
@@ -986,7 +1064,7 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
       maxHeight: '200px',
       overflow: 'auto'
     }}>
-      <div><strong>Board ID:</strong> {board._id}</div>
+      <div><strong>Board ID:</strong> {internalBoard._id}</div>
     </div>
   );
 
@@ -996,13 +1074,12 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
     selectedAssignee,
     selectedPriority,
     uniqueAssignees,
-    hasColumns: !!board?.columns,
-    hasTasks: board?.columns?.some(col => col.tasks?.length > 0)
+    hasColumns: !!internalBoard?.columns,
   });
 
   return (
     <div className="kanban-container">
-      <div className="kanban-filters">
+<div className="kanban-filters">
         <Filters
           searchText={searchText}
           setSearchText={setSearchText}
@@ -1020,7 +1097,7 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
           onDragOver={(e) => e.preventDefault()}
         >
           {displayColumns && displayColumns.length > 0 ? (
-            displayColumns.map(renderColumn)
+            renderColumns
           ) : (
             <div className="no-columns">No matching tasks found. Try adjusting your filters.</div>
           )}

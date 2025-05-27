@@ -39,25 +39,44 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Reset previous errors
+    // Reset previous errors and set loading state
     setError('');
+    setIsAdding(true);
     
-    // Validate required fields
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      return;
-    }
-    
-    if (!formData.epicLabel.trim()) {
-      setError('Epic Label is required');
-      return;
-    }
-
     try {
-      setIsAdding(true);
-      setError('');
+      // Validate required fields
+      if (!formData.title.trim()) {
+        throw new Error('Title is required');
+      }
+      
+      if (!formData.epicLabel.trim()) {
+        throw new Error('Epic Label is required');
+      }
+
+      // Validate boardId and columnId
+      if (!boardId) {
+        throw new Error('Board ID is missing. Please refresh the page and try again.');
+      }
+
+      if (!columnId) {
+        throw new Error('Column ID is missing. Please refresh the page and try again.');
+      }
+      
+      console.log('Form validation passed, preparing to add card...');
       
       const selectedAssignee = TEAM_MEMBERS.find(member => member.id === formData.assignee);
+      
+      console.log('Adding card with data:', {
+        boardId,
+        columnId,
+        cardData: {
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          priority: formData.priority,
+          epicLabel: formData.epicLabel.trim(),
+          assignee: selectedAssignee || null
+        }
+      });
       
       // The addCardToColumn function now returns the entire updated board
       const updatedBoard = await addCardToColumn(boardId, columnId, {
@@ -67,6 +86,12 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         epicLabel: formData.epicLabel.trim(),
         assignee: selectedAssignee || null
       });
+      
+      if (!updatedBoard) {
+        throw new Error('No board data returned from server');
+      }
+      
+      console.log('Card added successfully, updated board:', updatedBoard);
       
       // Pass the updated board to the parent component
       onCardAdded(updatedBoard);
@@ -79,13 +104,34 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         priority: 'medium',
         epicLabel: ''
       });
-      setError('');  // Clear any remaining errors
+      
+      // Close the form
       setShowForm(false);
+      
     } catch (err) {
-      console.error('Error adding card:', err);
-      setError('Failed to add card. Please try again.');
-    } finally {
-      setIsAdding(false);
+      console.error('Error in handleSubmit:', err);
+      
+      // Extract a user-friendly error message
+      let errorMessage = 'Failed to add card';
+      
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.statusText) {
+        errorMessage = `Server error: ${err.response.statusText}`;
+      }
+      
+      setError(errorMessage);
+      
+      // Log the full error for debugging
+      console.error('Full error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        stack: err.stack
+      });
+      
     }
   };
 

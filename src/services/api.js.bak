@@ -1,0 +1,484 @@
+import axios from 'axios';
+
+// Use the environment variable or fallback to localhost
+let API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5002';
+
+// Ensure the base URL doesn't end with a slash
+API_BASE_URL = API_BASE_URL.endsWith('/') 
+  ? API_BASE_URL.slice(0, -1) 
+  : API_BASE_URL;
+
+// Ensure the base URL includes the /api prefix if not already present
+const API_URL = API_BASE_URL.endsWith('/api')
+  ? API_BASE_URL
+  : `${API_BASE_URL}/api`;
+
+console.log('API Base URL:', API_URL);
+
+// Create an axios instance with default config
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add a response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Create a board
+export const createBoard = async (boardData) => {
+  try {
+    const response = await api.post('/boards', boardData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating board:', error);
+    throw error;
+  }
+};
+
+// Get a board by ID
+export const getBoard = async (boardId) => {
+  if (!boardId) {
+    const error = new Error('Board ID is required');
+    error.details = { boardId };
+    throw error;
+  }
+
+  try {
+    console.log(`Fetching board with ID: ${boardId}`);
+    const response = await api.get(`/boards/${boardId}`);
+    
+    if (!response.data) {
+      throw new Error('No board data received from server');
+    }
+    
+    console.log('Board data received, processing columns...');
+    const boardData = JSON.parse(JSON.stringify(response.data));
+    
+    // Process each column to filter out deleted cards
+    if (Array.isArray(boardData.columns)) {
+      boardData.columns = boardData.columns.map(column => {
+        const columnCopy = { ...column };
+        
+        // Ensure tasks is an array
+        if (!Array.isArray(columnCopy.tasks)) {
+          console.warn(`Column ${columnCopy.id} has no tasks array, initializing empty array`);
+          columnCopy.tasks = [];
+          return columnCopy;
+        }
+        
+        // Filter out deleted cards
+        columnCopy.tasks = columnCopy.tasks.filter(task => 
+          !(task.status === 'deleted' || task.deletedAt)
+        );
+        
+        return columnCopy;
+      });
+    } else {
+      console.warn('Board data does not contain columns array');
+      boardData.columns = [];
+    }
+    
+    return boardData;
+  } catch (error) {
+    console.error('Error fetching board:', error);
+    throw error;
+  }
+};
+
+// Update a board
+export const updateBoard = async (boardId, boardData) => {
+  try {
+    const response = await api.put(`/boards/${boardId}`, boardData);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating board:', error);
+    throw error;
+  }
+};
+
+// Delete a board
+export const deleteBoard = async (boardId) => {
+  try {
+    const response = await api.delete(`/boards/${boardId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting board:', error);
+    throw error;
+  }
+};
+
+// Add a new card to a column
+// Helper function to discover available endpoints
+const discoverEndpoints = async (baseUrl) => {
+  try {
+    // Try with and without /api suffix
+    const urlsToTry = [
+      baseUrl.replace(/\/api$/, ''), // Remove /api if present
+      baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`, // Try with trailing slash
+      `${baseUrl}api/`, // Try adding /api/
+      baseUrl // Try the original URL
+    ];
+
+    const uniqueUrls = [...new Set(urlsToTry)];
+    
+    for (const url of uniqueUrls) {
+      try {
+        console.log(`Trying to discover endpoints at: ${url}`);
+        const response = await axios.get(url, { timeout: 2000 });
+        console.log('Server response:', response);
+        return {
+          success: true,
+          data: response.data,
+          url: url
+        };
+      } catch (err) {
+        console.log(`Failed to fetch from ${url}:`, err.message);
+      }
+    }
+    
+    return { 
+      error: 'Could not discover endpoints',
+      triedUrls: uniqueUrls
+    };
+  } catch (error) {
+    console.error('Error in discoverEndpoints:', error);
+    return { 
+      error: 'Error discovering endpoints',
+      details: error.message 
+    };
+  }
+};
+
+// Helper to build API URLs without duplicating /api
+const buildApiUrl = (path) => {
+  // Remove leading slash if present
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  // Remove /api/ if already included in the base URL
+  if (cleanPath.startsWith('api/')) {
+    return `/${cleanPath}`;
+  }
+  return `/${cleanPath}`;
+};
+
+    // Get the board data with detailed error handling
+    let board;
+    let boardColumns = [];
+    
+    try {
+      console.log('Fetching board data for boardId:', boardId);
+      board = await getBoard(boardId);
+      
+      if (!board) {
+        throw new Error('Received empty board data from server');
+      }
+      
+      if (!Array.isArray(board.columns)) {
+        console.warn('Board data does not contain a valid columns array:', board);
+        board.columns = [];
+      }
+      
+      boardColumns = board.columns || [];
+      
+      console.log('Board data loaded successfully. Columns found:', boardColumns.length);
+      console.log('Board columns:', boardColumns.map(col => ({
+        id: col.id,
+        title: col.title,
+        type: typeof col.id,
+        hasTasks: Array.isArray(col.tasks)
+      })));
+      
+      if (boardColumns.length === 0) {
+        console.warn('No columns found in board data. Please check the board configuration.');
+      }
+      
+    } catch (err) {
+      console.error('Failed to fetch board data:', {
+        error: err,
+        boardId,
+        message: err.message,
+        stack: err.stack
+      });
+      throw new Error(`Failed to load board data: ${err.message}`);
+    }
+
+    // Find the target column with detailed logging
+    let targetColumn;
+    
+    console.log('Attempting to find column with ID:', columnId, 'Normalized:', normalizedColumnId);
+    console.log('Available columns:', boardColumns.map(c => ({ id: c.id, title: c.title })));
+    
+    // First try exact match
+    if (columnId) {
+      targetColumn = boardColumns.find(col => col.id === columnId);
+      if (targetColumn) {
+        console.log('Found column by exact ID match:', targetColumn);
+      }
+    }
+    
+    // Try case-insensitive match on ID
+    if (!targetColumn && normalizedColumnId) {
+      targetColumn = boardColumns.find(col => 
+        String(col.id).toLowerCase() === normalizedColumnId
+      );
+      if (targetColumn) {
+        console.log('Found column by case-insensitive ID match:', targetColumn);
+      }
+    }
+    
+    // Try matching by title
+    if (!targetColumn && normalizedColumnId) {
+      targetColumn = boardColumns.find(col => 
+        String(col.title).toLowerCase() === normalizedColumnId
+      );
+      if (targetColumn) {
+        console.log('Found column by title match:', targetColumn);
+      }
+    }
+    
+    // Try numeric index
+    if (!targetColumn && /^\d+$/.test(columnId)) {
+      const index = parseInt(columnId, 10);
+      if (index >= 0 && index < boardColumns.length) {
+        targetColumn = boardColumns[index];
+        console.log('Found column by numeric index:', index, targetColumn);
+      }
+    }
+    
+    // Fallback to first column if available
+    if (!targetColumn && boardColumns.length > 0) {
+      targetColumn = boardColumns[0];
+      console.warn(`No matching column found for '${columnId}'. Using first column as fallback.`);
+    }
+    
+    // If still no column found, throw an error
+    if (!targetColumn) {
+      const errorMsg = 'No valid column found to add the card to. The board has no columns.';
+      console.error(errorMsg, { boardId, columnId, normalizedColumnId, boardColumns });
+      throw new Error(errorMsg);
+    }
+    
+    console.log('Selected target column:', targetColumn);
+    
+    // Get the column ID (support both _id and id)
+    const fullColumnId = targetColumn._id || targetColumn.id;
+    if (!fullColumnId) {
+      console.error('Selected column has no valid ID:', targetColumn);
+      throw new Error('The selected column has no valid ID. Please try refreshing the board.');
+    }
+    
+    // Use the original columnId if it exists, otherwise use the full ID
+    // This handles the case where the backend expects 'column-0' format
+    resolvedColumnId = columnId || fullColumnId;
+    
+    // Add the ID to the column object for consistency
+    targetColumn.id = fullColumnId;
+    
+    console.log('Resolved column ID for API:', resolvedColumnId, '(Original:', columnId, ', Full:', fullColumnId + ')');
+
+    // Prepare the card data with timestamps
+    const cardWithTimestamp = {
+      ...cardData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: targetColumn.id, // Store the column ID in the status field
+      position: 0, // New cards go to the top
+      // Ensure we have all required fields with defaults
+      title: cardData.title || 'Untitled Card',
+      description: cardData.description || '',
+      priority: cardData.priority || 'medium'
+    };
+
+    // Clean up the card data (remove any undefined or null values)
+    Object.keys(cardWithTimestamp).forEach(key => {
+      if (cardWithTimestamp[key] === undefined || cardWithTimestamp[key] === null) {
+        delete cardWithTimestamp[key];
+      }
+    });
+
+    console.log('Adding card to column:', {
+      boardId,
+      originalColumnId: columnId,
+      resolvedColumnId: targetColumn.id,
+      columnTitle: targetColumn.title,
+      cardData: cardWithTimestamp
+    });
+
+    try {
+      // Make the API call with error handling
+      // Build the endpoint with the correct column ID format
+      // The backend expects: /api/boards/:boardId/columns/:columnId/cards
+      const endpoint = `/boards/${boardId}/columns/${columnIdStr}/cards`;
+      console.log('Using endpoint:', endpoint);
+      // Log the full request details for debugging
+      console.group('API Request Details');
+      console.log('Base URL:', api.defaults.baseURL);
+      console.log('Endpoint:', endpoint);
+      console.log('Method: POST');
+      console.log('Board ID:', boardId);
+      console.log('Full Column ID:', fullColumnId);
+      console.log('Resolved Column ID:', resolvedColumnId);
+      console.log('Request Payload:', cardWithTimestamp);
+    console.log('Board ID:', boardId);
+    console.log('Full Column ID:', fullColumnId);
+    console.log('Resolved Column ID:', resolvedColumnId);
+    console.log('Request Payload:', cardWithTimestamp);
+    
+    // Try to discover available endpoints
+    console.log('\nDiscovering available endpoints...');
+    const discoveryResult = await discoverEndpoints(api.defaults.baseURL);
+    
+    console.group('Endpoint Discovery Results');
+    console.log('Base URL being used:', api.defaults.baseURL);
+    console.log('Discovery result:', discoveryResult);
+    
+    if (discoveryResult.error) {
+      console.error('Failed to discover endpoints:', discoveryResult.error);
+      if (discoveryResult.triedUrls) {
+        console.log('Tried the following URLs:', discoveryResult.triedUrls);
+      }
+    } else {
+      console.log('Successfully discovered endpoints at:', discoveryResult.url);
+      console.log('Available endpoints:', discoveryResult.data);
+    }
+    console.groupEnd();
+    
+    // If we have a successful discovery, use that URL as the base
+    if (discoveryResult.url) {
+      api.defaults.baseURL = discoveryResult.url;
+    }
+  } catch (error) {
+    console.error('Error in endpoint discovery:', error);
+    throw error;
+  }
+};
+
+// Add a new card to a column
+export const addCardToColumn = async (boardId, columnId, cardData) => {
+  // Log the incoming parameters for debugging
+  console.log('addCardToColumn called with:', { boardId, columnId, cardData });
+
+  // Build the endpoint with the correct API path format
+  const endpoint = `/api/boards/${boardId}/columns/${columnId}/cards`;
+  
+  // Log the endpoint being called
+  console.log('Making POST request to:', endpoint);
+
+  try {
+    const response = await api.post(endpoint, cardData);
+    console.log('Card added successfully:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding card to column:', error);
+    
+    // Log detailed error information
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      
+      // Provide more specific error messages based on the status code
+      if (error.response.status === 404) {
+        // If we get column details in the response, include them in the error
+        if (error.response.data.availableColumns) {
+          throw new Error(`Column not found. Available columns: ${error.response.data.availableColumns.map(c => c.title).join(', ')}`);
+        }
+        throw new Error('The requested column or board was not found. Please refresh the page and try again.');
+      } else if (error.response.status === 400) {
+        throw new Error('Invalid request. Please check your input and try again.');
+      } else {
+        throw new Error(`Failed to add card: ${error.response.data.message || 'Unknown error'}`);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      throw new Error('No response from server. Please check your connection and try again.');
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Error setting up request:', error.message);
+      throw new Error(`Failed to add card: ${error.message}`);
+    }
+  }
+};
+};
+
+// Update a card
+export const updateCard = async (boardId, columnId, cardId, cardData) => {
+  try {
+    const response = await api.patch(
+      `/boards/${boardId}/columns/${columnId}/cards/${cardId}`,
+      {
+        ...cardData,
+        updatedAt: new Date().toISOString()
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating card:', error);
+    throw error;
+  }
+};
+
+// Update card position
+export const updateCardPosition = async (boardId, columnId, cardId, newPosition, newColumnId = null) => {
+  try {
+    const response = await api.patch(
+      `/boards/${boardId}/columns/${columnId}/cards/${cardId}/position`,
+      { newPosition, newColumnId }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error updating card position:', error);
+    throw error;
+  }
+};
+
+// Delete a card (soft delete)
+export const deleteCard = async (boardId, columnId, cardId) => {
+  try {
+    const response = await api.patch(
+      `/boards/${boardId}/columns/${columnId}/cards/${cardId}`,
+      {
+        status: 'deleted',
+        deletedAt: new Date().toISOString()
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting card:', error);
+    throw error;
+  }
+};
+
+// Get all tickets
+export const getAllTickets = async () => {
+  try {
+    const response = await api.get('/tickets');
+    return response.data;
+  } catch (error) {
+    console.error('Error getting tickets:', error);
+    throw error;
+  }
+};
+
+export default {
+  createBoard,
+  getBoard,
+  updateBoard,
+  deleteBoard,
+  addCardToColumn,
+  updateCard,
+  updateCardPosition,
+  deleteCard,
+  getAllTickets
+};

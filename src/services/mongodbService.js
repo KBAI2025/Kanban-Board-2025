@@ -75,3 +75,20 @@ export async function getTasksByColumn(columnId) {
     return [];
   }
 }
+
+/**
+ * Get all tickets from the tickets collection
+ * @returns {Promise<Array>} - Array of tickets
+ */
+export async function getAllTickets() {
+  try {
+    const { db } = await connectToDatabase();
+    return await db.collection('tickets')
+      .find({})
+      .sort({ createdAt: -1 }) // Most recent first
+      .toArray();
+  } catch (error) {
+    console.error('Error getting tickets:', error);
+    return [];
+  }
+}
