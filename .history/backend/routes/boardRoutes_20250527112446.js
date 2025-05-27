@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Board = require('../models/Board');
-const Counter = require('../models/Counter');
 const mongoose = require('mongoose');
 
 // Middleware to validate MongoDB ID
@@ -290,11 +289,31 @@ router.post('/:boardId/columns/:columnId/cards', async (req, res) => {
       });
     }
 
-    // Create a new card with a unique ID
+    // Create a new card
     const cardId = new mongoose.Types.ObjectId().toString();
     
-    // Get the next sequential number from the counter
-    const nextNumber = await Counter.getNextSequence('ticketNumber');
+    // Get the current highest ticket number from existing cards
+    let highestNumber = 0;
+    console.log('Finding highest ticket number...');
+    
+    board.columns.forEach(column => {
+      if (column.tasks && Array.isArray(column.tasks)) {
+        column.tasks.forEach(task => {
+          console.log('Checking task:', task.id, 'ticketNumber:', task.ticketNumber);
+          if (task.ticketNumber && typeof task.ticketNumber === 'string' && task.ticketNumber.startsWith('PT-')) {
+            const numStr = task.ticketNumber.substring(3).trim();
+            const num = parseInt(numStr, 10);
+            console.log('Parsed number:', num, 'from:', numStr);
+            if (!isNaN(num) && num > highestNumber) {
+              highestNumber = num;
+            }
+          }
+        });
+      }
+    });
+    
+    // If no existing PT- numbers found, start from 1
+    const nextNumber = highestNumber > 0 ? highestNumber + 1 : 1;
     const ticketNumber = `PT-${String(nextNumber).padStart(4, '0')}`;
     console.log('Generated new ticket number:', ticketNumber);
     

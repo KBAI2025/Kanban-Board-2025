@@ -436,9 +436,7 @@ const ListView = ({ board, onBoardUpdate }) => {
                 onClick={() => handleEditTask(task)}
               >
                 <div className="list-col ticket-number">
-                  {task.ticketNumber?.startsWith('PT-') 
-                    ? task.ticketNumber 
-                    : `PT-${String(task.id || '').substring(18, 21).toUpperCase()}`}
+                  {task.ticketNumber || `PT-${String(task.id).substring(18, 21).toUpperCase()}`}
                 </div>
                 <div className="list-col title">
                   <h4>{task.title}</h4>

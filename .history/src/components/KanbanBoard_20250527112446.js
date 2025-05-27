@@ -25,22 +25,6 @@ const Card = ({ card, index, columnId, onEdit }) => {
 
   const opacity = isDragging ? 0.5 : 1;
 
-  const getTicketNumber = () => {
-    // If ticketNumber exists and is in the correct format, use it
-    if (card.ticketNumber && typeof card.ticketNumber === 'string') {
-      return card.ticketNumber;
-    }
-    
-    // Fallback for existing cards without ticket numbers
-    if (card.id) {
-      // If we have a card ID but no ticket number, generate a fallback
-      return `PT-${String(card.id).substring(18, 22).padStart(4, '0')}`;
-    }
-    
-    // Last resort fallback
-    return 'PT-0000';
-  };
-
   return (
       <div
         ref={drag}
@@ -63,7 +47,9 @@ const Card = ({ card, index, columnId, onEdit }) => {
           </div>
           <div className="footer-right">
             <span className="ticket-number">
-              {getTicketNumber()}
+              {card.ticketNumber?.startsWith('PT-') 
+                ? card.ticketNumber 
+                : `PT-${String(card.id || '').substring(18, 21).toUpperCase()}`}
             </span>
             <div className="assignee">
               {card.assignee ? (

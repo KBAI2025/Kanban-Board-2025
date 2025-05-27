@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Board = require('../models/Board');
-const Counter = require('../models/Counter');
 const mongoose = require('mongoose');
 
 // Middleware to validate MongoDB ID
@@ -290,13 +289,17 @@ router.post('/:boardId/columns/:columnId/cards', async (req, res) => {
       });
     }
 
-    // Create a new card with a unique ID
+    // Create a new card
     const cardId = new mongoose.Types.ObjectId().toString();
     
-    // Get the next sequential number from the counter
-    const nextNumber = await Counter.getNextSequence('ticketNumber');
-    const ticketNumber = `PT-${String(nextNumber).padStart(4, '0')}`;
-    console.log('Generated new ticket number:', ticketNumber);
+    // Generate a sequential ticket number
+    const Counter = require('../models/Counter');
+    const counter = await Counter.findByIdAndUpdate(
+      { _id: 'ticketNumber' },
+      { $inc: { seq: 1 } },
+      { new: true, upsert: true }
+    );
+    const ticketNumber = `PT-${String(counter.seq).padStart(4, '0')}`;
     
     const newCard = {
       id: cardId,

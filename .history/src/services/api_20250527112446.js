@@ -326,23 +326,29 @@ const addCardToColumn = async (boardId, columnId, cardData) => {
       throw new Error(`Column with ID "${columnId}" not found. Available columns: ${availableColumns.map(c => `"${c.title}" (${c.id})`).join(', ')}`);
     }
     
-    // 3. Make API call to create the card with the backend
-    console.log('Sending card data to backend:', { columnId, cardData });
-    const response = await axios.post(`${API_BASE_URL}/api/boards/${boardId}/columns/${columnId}/cards`, {
+    // 3. Create new card with required fields
+    const newCard = {
       ...cardData,
-      title: cardData.title || 'New Card',
-      description: cardData.description || '',
-      priority: cardData.priority || 'medium',
-      epicLabel: cardData.epicLabel || '',
-      assignee: cardData.assignee || null
-    });
+      id: `card-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      status: 'active'
+    };
     
-    console.log('Card created successfully:', response.data);
+    // 4. Initialize tasks array if it doesn't exist
+    column.tasks = column.tasks || [];
     
-    // Return the updated board from the server
+    // 5. Add card to the beginning of the column
+    column.tasks.unshift(newCard);
+    
+    // 6. Save the updated board
+    const updatedBoard = await updateBoard(boardId, board);
+    
+    console.log('Card added successfully:', newCard);
+    // Return both the new card and the updated board
     return {
-      newCard: response.data,
-      updatedBoard: response.data
+      newCard,
+      updatedBoard
     };
   } catch (error) {
     console.error('Error in addCardToColumn:', {
