@@ -78,8 +78,8 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         }
       });
       
-      // The addCardToColumn function now returns the entire updated board
-      const updatedBoard = await addCardToColumn(boardId, columnId, {
+      // The addCardToColumn function now returns both the new card and the updated board
+      const { newCard, updatedBoard } = await addCardToColumn(boardId, columnId, {
         title: formData.title.trim(),
         description: formData.description.trim(),
         priority: formData.priority,
@@ -87,11 +87,11 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         assignee: selectedAssignee || null
       });
       
-      if (!updatedBoard) {
-        throw new Error('No board data returned from server');
+      if (!updatedBoard || !newCard) {
+        throw new Error('No board or card data returned from server');
       }
       
-      console.log('Card added successfully, updated board:', updatedBoard);
+      console.log('Card added successfully:', { newCard, updatedBoard });
       
       // Pass the updated board to the parent component
       onCardAdded(updatedBoard);

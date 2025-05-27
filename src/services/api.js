@@ -342,10 +342,14 @@ const addCardToColumn = async (boardId, columnId, cardData) => {
     column.tasks.unshift(newCard);
     
     // 6. Save the updated board
-    await updateBoard(boardId, board);
+    const updatedBoard = await updateBoard(boardId, board);
     
     console.log('Card added successfully:', newCard);
-    return newCard;
+    // Return both the new card and the updated board
+    return {
+      newCard,
+      updatedBoard
+    };
   } catch (error) {
     console.error('Error in addCardToColumn:', {
       error: error.message,
