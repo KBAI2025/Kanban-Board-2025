@@ -132,7 +132,7 @@ const WelcomeMessage = ({ onExampleClick }) => (
 
 const ChatButton = () => {
   // State management
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

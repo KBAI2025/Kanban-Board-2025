@@ -43,19 +43,13 @@
 }
 
 
-#titleAL{
+#title-input{
   width: 85%;
-  background-image: none;
 }
 
-#descriptionAL{
+#description{
   width: 92%;
 }
-
-#epiclabelAL{
-  width: 100%;
-}
-
 
 .add-card input[type="text"],
 .add-card textarea,

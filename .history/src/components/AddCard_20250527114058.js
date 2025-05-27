@@ -161,41 +161,22 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
         <div className="form-group">
           <label className="required-field">Card Title</label>
           <input
+            id="card-title-input"
             type="text"
             name="title"
-            id="titleAL"
             placeholder="Enter card title"
             value={formData.title}
             onChange={handleChange}
             disabled={isAdding}
             className={error && !formData.title.trim() ? 'error' : ''}
             required
+            aria-required="true"
+            aria-label="Card title"
           />
         </div>
         
         <div className="form-group">
-          <label className="required-field">Epic Label</label>
-          <select
-            name="epicLabel"
-            id="epiclabelAL"
-            value={formData.epicLabel}
-            onChange={handleChange}
-            disabled={isAdding}
-            className={error && !formData.epicLabel.trim() ? 'error' : ''}
-            required
-          >
-            <option value="">Select an Epic Label</option>
-            <option value="UI/UX">UI/UX</option>
-            <option value="Frontend">Frontend</option>
-            <option value="Backend">Backend</option>
-            <option value="Bug">Bug</option>
-            <option value="Feature">Feature</option>
-          </select>
-        </div>
-
-        <div className="form-group">
           <textarea
-              id="descriptionAL"
             name="description"
             placeholder="Description"
             value={formData.description}
@@ -240,6 +221,25 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
               </label>
             ))}
           </div>
+        </div>
+        
+        <div className="form-group">
+          <label className="required-field">Epic Label</label>
+          <select
+            name="epicLabel"
+            value={formData.epicLabel}
+            onChange={handleChange}
+            disabled={isAdding}
+            className={error && !formData.epicLabel.trim() ? 'error' : ''}
+            required
+          >
+            <option value="">Select an Epic Label</option>
+            <option value="UI/UX">UI/UX</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="Bug">Bug</option>
+            <option value="Feature">Feature</option>
+          </select>
         </div>
         
         <div className="form-actions">

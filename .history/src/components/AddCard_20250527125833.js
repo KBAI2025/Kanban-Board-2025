@@ -195,7 +195,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
 
         <div className="form-group">
           <textarea
-              id="descriptionAL"
+              id={`description-${formData.title.trim().toLowerCase().replace(/\s+/g, '-')}`}
             name="description"
             placeholder="Description"
             value={formData.description}

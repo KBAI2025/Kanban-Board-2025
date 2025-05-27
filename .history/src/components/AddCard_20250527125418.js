@@ -163,7 +163,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
           <input
             type="text"
             name="title"
-            id="titleAL"
+            id={`title-${formData.title.trim().toLowerCase().replace(/\s+/g, '-') || 'input'}`}
             placeholder="Enter card title"
             value={formData.title}
             onChange={handleChange}
@@ -177,7 +177,6 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
           <label className="required-field">Epic Label</label>
           <select
             name="epicLabel"
-            id="epiclabelAL"
             value={formData.epicLabel}
             onChange={handleChange}
             disabled={isAdding}
@@ -195,7 +194,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
 
         <div className="form-group">
           <textarea
-              id="descriptionAL"
+              id={`description-${formData.title.trim().toLowerCase().replace(/\s+/g, '-')}`}
             name="description"
             placeholder="Description"
             value={formData.description}

@@ -163,7 +163,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
           <input
             type="text"
             name="title"
-            id="titleAL"
+            id={`title-${formData.title.trim().toLowerCase().replace(/\s+/g, '-') || 'input'}`}
             placeholder="Enter card title"
             value={formData.title}
             onChange={handleChange}
@@ -172,12 +172,11 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
             required
           />
         </div>
-        
+
         <div className="form-group">
           <label className="required-field">Epic Label</label>
           <select
             name="epicLabel"
-            id="epiclabelAL"
             value={formData.epicLabel}
             onChange={handleChange}
             disabled={isAdding}
@@ -192,10 +191,36 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
             <option value="Feature">Feature</option>
           </select>
         </div>
+        
+        <div className="form-actions">
+          <button type="submit" className="primary" disabled={isAdding}>
+            {isAdding ? 'Adding...' : 'Add Card'}
+          </button>
+          <button 
+            type="button" 
+            className="secondary"
+            onClick={() => {
+              setFormData({
+                title: '',
+                description: '',
+                assignee: '',
+                priority: 'medium',
+                epicLabel: ''
+              });
+              setError('');
+              setShowForm(false);
+            }}
+            disabled={isAdding}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
 
         <div className="form-group">
           <textarea
-              id="descriptionAL"
+              id={`description-${formData.title.trim().toLowerCase().replace(/\s+/g, '-')}`}
             name="description"
             placeholder="Description"
             value={formData.description}
@@ -242,31 +267,7 @@ const AddCard = ({ boardId, columnId, onCardAdded }) => {
           </div>
         </div>
         
-        <div className="form-actions">
-          <button type="submit" className="primary" disabled={isAdding}>
-            {isAdding ? 'Adding...' : 'Add Card'}
-          </button>
-          <button 
-            type="button" 
-            className="secondary"
-            onClick={() => {
-              setFormData({
-                title: '',
-                description: '',
-                assignee: '',
-                priority: 'medium',
-                epicLabel: ''
-              });
-              setError('');
-              setShowForm(false);
-            }}
-            disabled={isAdding}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+        
   );
 };
 
