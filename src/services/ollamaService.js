@@ -120,29 +120,39 @@ function formatMongoDBDataForPrompt(data) {
     }).join('\n\n');
   }
   
+  // Check if this is a status query (all tasks have the same column/status)
+  const isStatusQuery = data.length > 0 && 
+    data.every(item => item.type === 'task') &&
+    data[0].data.column?.name;
+
+  if (isStatusQuery) {
+    // Get the status from the first task (they should all be the same)
+    const status = data[0].data.column.name;
+    
+    // Format the task list with better structure
+    const taskList = data.map(taskData => {
+      const task = taskData.data;
+      const assignee = task.assignee ? `👤 ${task.assignee}` : '';
+      const dueDate = task.dueDate ? `📅 ${new Date(task.dueDate).toLocaleDateString()}` : '';
+      const priority = task.priority ? `🔝 ${task.priority}` : '';
+      const details = [assignee, dueDate, priority].filter(Boolean).join(' • ');
+      
+      return `• **${task.title}**  
+  ${details || 'No additional details'}`;
+    }).join('\n\n');
+    
+    return `## 📋 Tasks in **${status}**\n\n${taskList || 'No tasks found in this status.'}`;
+  }
+  
   // Default formatting for other queries
   const formattedData = data.map(item => {
     if (item.type === 'task') {
       const task = item.data;
       const status = task.column?.name ? `\n\nStatus: ${task.column.name}` : '';
+      const assignee = task.assignee ? `\nAssigned to: ${task.assignee}` : '';
+      const dueDate = task.dueDate ? `\nDue: ${new Date(task.dueDate).toLocaleDateString()}` : '';
       
-      // Choose emoji based on task type or first word of title
-      let emoji = '📌'; // Default emoji
-      const title = task.title || '';
-      
-      if (title.toLowerCase().includes('chatbot') || title.toLowerCase().includes('chat bot')) {
-        emoji = '🤖';
-      } else if (title.toLowerCase().includes('margin') || title.toLowerCase().includes('calculator')) {
-        emoji = '🔧';
-      } else if (title.toLowerCase().includes('bug') || title.toLowerCase().includes('fix')) {
-        emoji = '🐛';
-      } else if (title.toLowerCase().includes('feature')) {
-        emoji = '✨';
-      } else if (title.toLowerCase().includes('meeting')) {
-        emoji = '📅';
-      }
-      
-      return `${emoji} **${task.title}**${status}`;
+      return `### ${task.title}${status}${assignee}${dueDate}`;
     } else if (item.type === 'board') {
       const board = item.data;
       const columns = board.columns?.map(col => `- ${col.name} (${col.tasks?.length || 0} tasks)`).join('\n') || 'No columns';
@@ -152,10 +162,10 @@ function formatMongoDBDataForPrompt(data) {
       const tasks = column.tasks?.map(task => `- ${task.title}`).join('\n') || 'No tasks';
       return `### 📋 Column: ${column.name}\n\n**Tasks:**\n${tasks}`;
     }
-    return `### 📄 ${item.type}\n\`\`\`json\n${JSON.stringify(item.data, null, 2)}\n\`\`\``;
-  }).join('\n\n---\n\n');
+    return `### ${item.type}\n\`\`\`json\n${JSON.stringify(item.data, null, 2)}\n\`\`\``;
+  }).join('\n\n');
   
-  return `## 📊 Relevant Data\n\n${formattedData}`;
+  return `## Relevant Data\n\n${formattedData}`;
 }
 
 /**
@@ -172,7 +182,7 @@ export const sendMessageToOllama = async ({
   message,
   messages = [],
   board = null,
-  model = 'deepseek-coder:6.7b',
+  model = 'mistral',
   options = {}
 }) => {
   try {
@@ -356,64 +366,28 @@ function cleanResponse(text) {
   // Remove any leading/trailing whitespace
   let cleaned = text.trim();
   
+  // Remove the system prompt if it was included
+  const promptEnd = cleaned.indexOf('# Response Rules');
+  if (promptEnd > -1) {
+    cleaned = cleaned.substring(0, promptEnd).trim();
+  }
+  
+  // Remove any remaining system prompt fragments
+  cleaned = cleaned.replace(/^# Response Rules[\s\S]*$/gm, '').trim();
+  
   // Add line breaks after headings
   cleaned = cleaned.replace(/^(#{1,6})\s+(.*)$/gm, '\n$1 $2\n');
-  
-  // Add line breaks before and after lists
-  cleaned = cleaned.replace(/(^|\n)([-*+]|\d+\.)\s+/g, '\n$1$2 ');
-  cleaned = cleaned.replace(/(\n[-*+]\s+.*)(\n\s*\n)/g, '$1\n$2');
-  
-  // Add line breaks around code blocks
-  cleaned = cleaned.replace(/(\n)?```(\w*)([\s\S]*?)```(\n)?/g, (match, p1, lang, code, p4) => {
-    return `\n\n\`\`\`${lang || ''}${code}\`\`\`\n\n`;
-  });
-  
-  // Add line breaks after paragraphs
-  cleaned = cleaned.replace(/([.!?])\s+(?=[A-Z])/g, '$1\n\n');
   
   // Clean up multiple consecutive line breaks
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
   
-  // Add spacing around bold and italic text
-  cleaned = cleaned
-    .replace(/\*\*([^*]+)\*\*/g, ' **$1** ')
-    .replace(/\*([^*]+)\*/g, ' *$1* ');
+  // Remove any remaining empty lines at the beginning or end
+  cleaned = cleaned.replace(/^\n+|\n+$/g, '');
   
-  // Ensure proper spacing after sentences
-  cleaned = cleaned.replace(/([.!?])([A-Z])/g, '$1 $2');
-  
-  // Split into lines and clean up each line
-  const lines = cleaned.split('\n').map(line => {
-    // Remove extra spaces
-    line = line.trim();
-    // Add a space after list markers if missing
-    line = line.replace(/^(-|\d+\.)([^\s])/, '$1 $2');
-    return line;
-  }).filter(line => line.length > 0);
-  
-  // Join lines with proper spacing
-  cleaned = lines.join('\n');
-  
-  // Add proper spacing between sections
-  cleaned = cleaned
-    // Add space after headings
-    .replace(/(^#+ .+$)\n(?!\n)/gm, '$1\n\n')
-    // Add space before headings
-    .replace(/([^\n])\n(#+ )/g, '$1\n\n$2')
-    // Ensure two newlines between paragraphs
-    .replace(/([^\n])\n([^\n])/g, '$1\n\n$2');
-  
-  // Ensure the response ends with proper punctuation
-  if (!/[.!?]$/.test(cleaned)) {
-    cleaned = cleaned.replace(/[,.!?]*$/, '') + '.';
+  // If we have no content left, return a friendly message
+  if (!cleaned) {
+    return 'No tasks found in this status.';
   }
-  
-  // Final cleanup of any remaining issues
-  cleaned = cleaned
-    .replace(/\s+([.,!?])/g, '$1')  // Remove spaces before punctuation
-    .replace(/\s{2,}/g, ' ')         // Remove multiple spaces
-    .replace(/\n\s+\n/g, '\n\n')    // Clean up line breaks
-    .trim();
   
   return cleaned;
 }

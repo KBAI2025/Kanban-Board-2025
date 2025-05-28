@@ -32,6 +32,31 @@ const ListView = ({ board, onBoardUpdate }) => {
     setShowEditPopup(true);
   };
 
+  const handleDeleteTask = useCallback((taskId) => {
+    if (!taskId || !board) return;
+    
+    // Create a deep copy of the board
+    const updatedBoard = JSON.parse(JSON.stringify(board));
+    let taskDeleted = false;
+    
+    // Find and remove the task from its column
+    for (const column of updatedBoard.columns) {
+      const taskIndex = column.tasks.findIndex(t => t.id === taskId);
+      if (taskIndex !== -1) {
+        column.tasks.splice(taskIndex, 1);
+        taskDeleted = true;
+        break;
+      }
+    }
+    
+    if (taskDeleted) {
+      // Update the board state
+      onBoardUpdate(updatedBoard);
+    }
+    
+    handleCloseEdit();
+  }, [board, onBoardUpdate]);
+
   const handleSaveTask = (updatedTask) => {
     // Create a deep copy of the board to properly update nested state
     const updatedBoard = JSON.parse(JSON.stringify(board));
@@ -380,8 +405,11 @@ const ListView = ({ board, onBoardUpdate }) => {
             }}
             onCancel={handleCloseEdit}
             onDelete={() => {
-              // You can implement delete functionality if needed
-              handleCloseEdit();
+              if (selectedTask?.id) {
+                handleDeleteTask(selectedTask.id);
+              } else {
+                handleCloseEdit();
+              }
             }}
           />
         </div>

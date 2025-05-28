@@ -158,7 +158,7 @@ const EditCard = ({
     };
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this card?')) {
       // Create a cleanup flag for this operation
       let isSubscribed = true;
@@ -168,8 +168,15 @@ const EditCard = ({
           setIsSaving(true);
         }
         
-        // Pass the card ID to the onDelete callback
-        await onDelete(card.id);
+        // Call the onDelete callback with the card ID
+        if (onDelete && typeof onDelete === 'function') {
+          onDelete(card.id);
+        }
+        
+        // Close the modal after successful deletion
+        if (onCancel) {
+          onCancel();
+        }
       } catch (err) {
         // Only update state if component is still mounted and operation wasn't cancelled
         if (isMounted.current && isSubscribed) {
