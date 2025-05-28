@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faUser, faFilter } from '@fortawesome/free-solid-svg-icons';
 import './Filters.css';
@@ -18,9 +18,13 @@ const Filters = ({
     selectedPriority, 
     uniqueAssignees 
   });
-  // Sort assignees alphabetically
+  // Sort assignees alphabetically by name
   const sortedAssignees = React.useMemo(() => {
-    return [...uniqueAssignees].sort((a, b) => a.localeCompare(b));
+    return [...uniqueAssignees].sort((a, b) => {
+      const nameA = a?.name || '';
+      const nameB = b?.name || '';
+      return nameA.localeCompare(nameB);
+    });
   }, [uniqueAssignees]);
 
   // Handle search input change with debounce
@@ -29,14 +33,45 @@ const Filters = ({
   };
 
   // Clear all filters
-  const clearFilters = () => {
-    setSearchText('');
-    setSelectedAssignee('all');
-    setSelectedPriority('all');
-  };
+  const clearFilters = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('Clearing all filters');
+    
+    // Reset parent state if callbacks are provided
+    // This will trigger the parent's state update which will flow back down
+    if (typeof setSearchText === 'function') {
+      setSearchText('');
+    }
+    if (typeof setSelectedAssignee === 'function') {
+      setSelectedAssignee('all');
+    }
+    if (typeof setSelectedPriority === 'function') {
+      setSelectedPriority('all');
+    }
+  }, [setSearchText, setSelectedAssignee, setSelectedPriority]);
 
   // Check if any filter is active
-  const isFilterActive = searchText || selectedAssignee !== 'all' || selectedPriority !== 'all';
+  const isFilterActive = useMemo(() => {
+    return (
+      (searchText && searchText.trim() !== '') || 
+      (selectedAssignee && selectedAssignee !== 'all') || 
+      (selectedPriority && selectedPriority !== 'all')
+    );
+  }, [searchText, selectedAssignee, selectedPriority]);
+  
+  // Debug log for filter state
+  useEffect(() => {
+    console.log('Filter state:', {
+      searchText,
+      selectedAssignee,
+      selectedPriority,
+      isFilterActive
+    });
+  }, [searchText, selectedAssignee, selectedPriority, isFilterActive]);
 
   return (
     <div className={`filters-container ${className}`}>
@@ -77,8 +112,8 @@ const Filters = ({
             <option value="all">All Assignees</option>
             {Array.isArray(sortedAssignees) && sortedAssignees.length > 0 ? (
               sortedAssignees.map((assignee) => (
-                <option key={assignee} value={assignee}>
-                  {assignee}
+                <option key={assignee.id} value={assignee.id}>
+                  {assignee.name}
                 </option>
               ))
             ) : (

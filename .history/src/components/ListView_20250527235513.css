@@ -35,7 +35,6 @@
   animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   color: #333333 !important;
   line-height: 1.5;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .dark .edit-popup {
@@ -196,7 +195,7 @@
 }
 
 .dark .priority-badge[data-priority="medium"] {
-  background-color: #e5f4ff;
+  background-color: rgb(188 225 255);
     color: #2196f3;
     border: 1px solid rgb(33, 150, 243);
 }
@@ -243,52 +242,6 @@
 .close-btn:hover {
   color: #1a1a1a;
   background-color: rgba(0, 0, 0, 0.05);
-}
-
-/* Clear Filters Button */
-.clear-filters {
-  margin: 0 4px 0 0;
-  padding: 0 10px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  height: 26px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--primary-color, #4a90e2);
-  background-color: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.clear-filters:hover {
-  background-color: rgba(74, 144, 226, 0.08);
-  border-color: rgba(74, 144, 226, 0.3);
-}
-
-.clear-filters:active {
-  background-color: rgba(74, 144, 226, 0.15);
-  transform: translateY(1px);
-}
-
-/* Dark mode styles */
-.dark .clear-filters {
-  color: #64b5f6;
-}
-
-.dark .clear-filters:hover {
-  background-color: rgba(100, 181, 246, 0.1);
-  border-color: rgba(100, 181, 246, 0.3);
-}
-
-.dark .clear-filters:active {
-  background-color: rgba(100, 181, 246, 0.2);
 }
 
 .list-header {

@@ -30,7 +30,7 @@ function App() {
         setError(null);
       } catch (err) {
         console.error('Error fetching board:', err);
-        setError('Failed to load board. Please try again later. (Restart Backend)');
+        setError('Failed to load board. Please try again later.');
       } finally {
         setIsLoading(false);
       }

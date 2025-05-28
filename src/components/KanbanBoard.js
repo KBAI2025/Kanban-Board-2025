@@ -248,27 +248,24 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
 
     if (board?.columns) {
       const assignees = new Set();
-      board.columns.forEach((column, colIndex) => {
-        console.log(`Column ${colIndex} (${column.id}):`, {
-          name: column.name,
-          taskCount: column.tasks?.length || 0,
-          tasks: column.tasks?.map(t => ({
-            id: t.id,
-            title: t.title,
-            assignee: t.assignee?.name || 'none'
-          }))
-        });
-
+      board.columns.forEach((column) => {
         if (column.tasks && Array.isArray(column.tasks)) {
           column.tasks.forEach(task => {
-            if (task.assignee?.name) {
-              assignees.add(task.assignee.name);
+            if (task.assignee) {
+              assignees.add(JSON.stringify({
+                id: task.assignee.id || task.assignee.name.toLowerCase().replace(/\s+/g, '-'),
+                name: task.assignee.name,
+                avatar: task.assignee.avatar
+              }));
             }
           });
         }
       });
       
-      const sortedAssignees = Array.from(assignees).sort();
+      const sortedAssignees = Array.from(assignees)
+        .map(a => JSON.parse(a))
+        .sort((a, b) => a.name.localeCompare(b.name));
+        
       console.log('Updating unique assignees:', sortedAssignees);
       setUniqueAssignees(sortedAssignees);
     } else {
@@ -291,7 +288,7 @@ const KanbanBoard = ({ boardId = 'default-board', onBoardUpdate, initialBoard, b
         
         // Filter by assignee
         const matchesAssignee = selectedAssignee === 'all' || 
-          (task.assignee?.name === selectedAssignee);
+          (task.assignee?.id === selectedAssignee);
           
         // Filter by priority
         const matchesPriority = selectedPriority === 'all' || 

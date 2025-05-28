@@ -672,13 +672,14 @@
   padding: 0;
   transition: background-color 0.2s, transform 0.2s;
   position: absolute;
-  right: 2px;
-  top: 50%;
+  right: 8px;
+  top: 0%;
   transform: translateY(-50%) scale(1);
   overflow: hidden;
 }
 
 .send-button:hover {
+  transform: translateY(-50%) scale(1.05);
   background-color: var(--primary-dark);
 }
 
@@ -693,7 +694,7 @@
 
 .send-button:not(:disabled):hover {
   background: var(--primary-hover);
-
+  transform: scale(1.05);
 }
 
 .send-button:disabled {
@@ -710,9 +711,6 @@
 
 .send-button:not(:disabled):hover .send-icon {
   transform: translateX(1px);
-  color: white;
-  fill: white;
-  stroke: white;
 }
 
 .input-hint {

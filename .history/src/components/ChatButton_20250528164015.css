@@ -672,7 +672,7 @@
   padding: 0;
   transition: background-color 0.2s, transform 0.2s;
   position: absolute;
-  right: 2px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%) scale(1);
   overflow: hidden;
@@ -693,7 +693,7 @@
 
 .send-button:not(:disabled):hover {
   background: var(--primary-hover);
-
+  transform: scale(1.05);
 }
 
 .send-button:disabled {
@@ -710,9 +710,6 @@
 
 .send-button:not(:disabled):hover .send-icon {
   transform: translateX(1px);
-  color: white;
-  fill: white;
-  stroke: white;
 }
 
 .input-hint {

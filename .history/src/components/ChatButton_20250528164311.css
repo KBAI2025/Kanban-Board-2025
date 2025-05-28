@@ -710,9 +710,6 @@
 
 .send-button:not(:disabled):hover .send-icon {
   transform: translateX(1px);
-  color: white;
-  fill: white;
-  stroke: white;
 }
 
 .input-hint {
